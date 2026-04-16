@@ -603,10 +603,10 @@ CREATE POLICY "public_delete_asistencias" ON asistencias FOR DELETE USING (true)
 //  ESTADO GLOBAL
 // ╚══════════════════════════════════════════════════════════╝
 const CFG = {
-  supabaseUrl:  localStorage.getItem('sb_url')    || '',
-  supabaseKey:  localStorage.getItem('sb_key')    || '',
+  supabaseUrl:  localStorage.getItem('sb_url')    || 'https://kshmetrlquskxsighywn.supabase.co',
+  supabaseKey:  localStorage.getItem('sb_key')    || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtzaG1ldHJscXVza3hzaWdoeXduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzNDU2OTEsImV4cCI6MjA5MTkyMTY5MX0.yQIxym2gt7-BBkHMyQU-aQVaqpZFKabPz3ZRaKfOxlY',
   campanaName:  localStorage.getItem('camp_name') || 'Campaña Evangelista',
-  publicUrl:    localStorage.getItem('pub_url')   || window.location.href.split('?')[0],
+  publicUrl:    localStorage.getItem('pub_url')   || 'https://iglesiaadventista-cucuta.github.io/campana-evangelista/',
   adminPass:    localStorage.getItem('adm_pass')  || 'admin2025',
   viewerPass:   localStorage.getItem('vie_pass')  || 'viewer2025',
   resendKey:    localStorage.getItem('resend_key')|| '',
