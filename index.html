@@ -710,8 +710,15 @@ async function dbGetAsistenciasConPersona() {
 
 async function dbGetAsistenciasDia(fecha) {
   if (isDemo()) return DEMO_DB.asistencias.filter(a=>a.fecha===fecha);
-  const rows = await sbGet('asistencias', `?fecha=eq.${fecha}&order=registrado_en.asc`);
-  return Array.isArray(rows) ? rows : [];
+  const rows = await sbGet('asistencias', `?fecha=eq.${fecha}&order=registrado_en.asc&select=*,personas(telefono,direccion)`);
+  if (Array.isArray(rows)) {
+    return rows.map(r => ({
+      ...r,
+      telefono: r.personas?.telefono || '—',
+      barrio: r.personas?.direccion || '—'
+    }));
+  }
+  return [];
 }
 
 async function dbStats() {
@@ -981,12 +988,19 @@ async function cargarPersonas() {
   document.getElementById('tblPersonas').innerHTML=
     `<tr><td colspan="9" style="text-align:center;padding:20px;color:var(--muted)">Cargando...</td></tr>`;
   PERSONAS_CACHE = await dbGetPersonas();
-  // Contar asistencias por persona (solo demo por ahora; con Supabase se hace join)
-  for (const p of PERSONAS_CACHE) {
-    if (isDemo()) {
+  if (isDemo()) {
+    for (const p of PERSONAS_CACHE) {
       p._asist = DEMO_DB.asistencias.filter(a=>a.persona_id===p.id).length;
+    }
+  } else {
+    // Contar asistencias reales desde Supabase
+    const allAsist = await sbGet('asistencias', '?select=persona_id');
+    if (Array.isArray(allAsist)) {
+      const counts = {};
+      allAsist.forEach(a => { counts[a.persona_id] = (counts[a.persona_id]||0)+1; });
+      for (const p of PERSONAS_CACHE) { p._asist = counts[p.id] || 0; }
     } else {
-      p._asist = '—';
+      for (const p of PERSONAS_CACHE) { p._asist = '—'; }
     }
   }
   renderPersonas(PERSONAS_CACHE);
