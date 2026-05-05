@@ -1,0 +1,2393 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>La Fe de Jesús — Curso Bíblico</title>
+  <meta name="description" content="Curso Bíblico La Fe de Jesús — 20 Lecciones. Iglesia Adventista del Séptimo Día." />
+  <meta name="theme-color" content="#030f1c" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✝️</text></svg>" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #030f1c; overflow-x: hidden; }
+    #root { min-height: 100vh; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: .6; transform: scale(1.1); } }
+    @keyframes fall { to { top: 110vh; opacity: 0; transform: rotate(720deg); } }
+    @keyframes shimmer { 0%,100% { opacity:.6; } 50% { opacity:1; } }
+    @keyframes glowPulse { 0%,100% { box-shadow: 0 0 30px rgba(0,212,200,.3), 0 0 60px rgba(233,30,140,.15); } 50% { box-shadow: 0 0 50px rgba(0,212,200,.5), 0 0 100px rgba(233,30,140,.25); } }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useCallback, useRef } = React;
+
+/* ═══════════════════════════════════════════════════════════
+   CURSO BÍBLICO "LA FE DE JESÚS" — 20 LECCIONES
+   Iglesia Adventista del Séptimo Día
+   ═══════════════════════════════════════════════════════════
+   FASE 1b: Conectado a Supabase
+   ═══════════════════════════════════════════════════════════ */
+
+// ─── SUPABASE CONFIG ───
+const SUPABASE_URL = "https://nhusttkarwfazptjsyxq.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5odXN0dGthcndmYXpwdGpzeXhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MjE1NzQsImV4cCI6MjA5MzM5NzU3NH0.gLiz8Nc4hFwkTkJUDKk1m1bRJ99lJJAqTJFSTptFBi8";
+
+const supaFetch = async (path, options = {}) => {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`,
+      "Content-Type": "application/json",
+      Prefer: options.prefer || "return=representation",
+      ...options.headers,
+    },
+    method: options.method || "GET",
+    body: options.body ? JSON.stringify(options.body) : undefined,
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Supabase error: ${res.status} - ${err}`);
+  }
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+};
+
+// ─── 20 TEMAS OFICIALES ───
+const LECCIONES = [
+  {
+    id: 1, titulo: "Lo que la Biblia enseña acerca de Dios", icono: "✦",
+    intro: "Dios es el Ser supremo, eterno y todopoderoso. Él se ha revelado a través de su Palabra para que podamos conocerle y amarle.",
+    preguntas: [
+      { pregunta: "¿Cuántos dioses verdaderos existen?", cita: "Deuteronomio 6:4", texto: "Oye, Israel: Jehová nuestro Dios, Jehová uno es.", explicacion: "Solo existe un Dios verdadero. Aunque se manifiesta como Padre, Hijo y Espíritu Santo, es un solo Dios que nos ama infinitamente." },
+      { pregunta: "¿Cuáles son algunas cualidades de Dios?", cita: "Salmos 90:2", texto: "Desde el siglo y hasta el siglo, tú eres Dios.", explicacion: "Dios es eterno, no tiene principio ni fin. Es omnipotente, omnisciente y omnipresente, y desea tener una relación personal con cada uno de nosotros." },
+      { pregunta: "¿Cómo es el carácter de Dios?", cita: "1 Juan 4:8", texto: "El que no ama, no ha conocido a Dios; porque Dios es amor.", explicacion: "La esencia misma de Dios es el amor. Todo lo que Él hace está motivado por su amor incondicional hacia la humanidad." }
+    ]
+  },
+  {
+    id: 2, titulo: "La Santa Biblia", icono: "📖",
+    intro: "La Biblia es la Palabra inspirada de Dios, nuestra guía segura para la vida y la fe cristiana.",
+    preguntas: [
+      { pregunta: "¿Quién inspiró la Biblia?", cita: "2 Timoteo 3:16", texto: "Toda la Escritura es inspirada por Dios, y útil para enseñar, para redargüir, para corregir, para instruir en justicia.", explicacion: "Dios usó al Espíritu Santo para guiar a los escritores bíblicos. Aunque cada uno escribió con su propio estilo, el mensaje proviene de Dios." },
+      { pregunta: "¿Para qué nos fue dada la Biblia?", cita: "Salmos 119:105", texto: "Lámpara es a mis pies tu palabra, y lumbrera a mi camino.", explicacion: "La Biblia ilumina nuestro camino, nos muestra la voluntad de Dios y nos guía en cada decisión." },
+      { pregunta: "¿Cómo debemos estudiar la Biblia?", cita: "Hechos 17:11", texto: "Y éstos eran más nobles que los que estaban en Tesalónica, pues recibieron la palabra con toda solicitud, escudriñando cada día las Escrituras para ver si estas cosas eran así.", explicacion: "Debemos estudiar la Biblia diariamente, con mente abierta y corazón dispuesto." }
+    ]
+  },
+  {
+    id: 3, titulo: "La Oración y la Fe", icono: "🙏",
+    intro: "La oración es la comunicación directa con Dios. A través de ella fortalecemos nuestra fe y recibimos dirección divina.",
+    preguntas: [
+      { pregunta: "¿Qué es la oración?", cita: "Jeremías 33:3", texto: "Clama a mí, y yo te responderé, y te enseñaré cosas grandes y ocultas que tú no conoces.", explicacion: "La oración es hablar con Dios como con un amigo. Él promete escucharnos y respondernos." },
+      { pregunta: "¿En nombre de quién debemos orar?", cita: "Juan 14:13-14", texto: "Y todo lo que pidiereis al Padre en mi nombre, lo haré, para que el Padre sea glorificado en el Hijo.", explicacion: "Jesús es nuestro mediador ante el Padre. Oramos en su nombre porque Él nos abrió el camino." },
+      { pregunta: "¿Qué es la fe?", cita: "Hebreos 11:1", texto: "Es, pues, la fe la certeza de lo que se espera, la convicción de lo que no se ve.", explicacion: "La fe es confiar plenamente en Dios, creer en sus promesas aunque no veamos el resultado inmediato." }
+    ]
+  },
+  {
+    id: 4, titulo: "La Segunda Venida de Jesús", icono: "☁️",
+    intro: "La promesa más gloriosa de la Biblia: Jesús volverá para llevar a los suyos al hogar celestial.",
+    preguntas: [
+      { pregunta: "¿Prometió Jesús volver?", cita: "Juan 14:1-3", texto: "En la casa de mi Padre muchas moradas hay... voy, pues, a preparar lugar para vosotros. Y si me fuere y os preparare lugar, vendré otra vez, y os tomaré a mí mismo.", explicacion: "Jesús mismo prometió que regresaría. Esta es la esperanza más grande del cristiano." },
+      { pregunta: "¿Cómo será su venida?", cita: "Apocalipsis 1:7", texto: "He aquí que viene con las nubes, y todo ojo le verá.", explicacion: "La segunda venida será visible, audible y gloriosa. No será un evento secreto, todo el mundo lo verá." },
+      { pregunta: "¿Qué sucederá cuando Jesús venga?", cita: "1 Tesalonicenses 4:16-17", texto: "Porque el Señor mismo con voz de mando... descenderá del cielo; y los muertos en Cristo resucitarán primero.", explicacion: "Los justos muertos resucitarán y junto con los vivos serán llevados al cielo para estar con Cristo para siempre." }
+    ]
+  },
+  {
+    id: 5, titulo: "Las Señales de la Segunda Venida", icono: "🌟",
+    intro: "La Biblia describe señales claras que anuncian la proximidad del regreso de Jesús a esta tierra.",
+    preguntas: [
+      { pregunta: "¿Qué señales preceden la venida de Cristo?", cita: "Mateo 24:6-7", texto: "Y oiréis de guerras y rumores de guerras... Porque se levantará nación contra nación, y reino contra reino; y habrá pestes, y hambres, y terremotos en diferentes lugares.", explicacion: "Las guerras, desastres naturales, epidemias y la maldad creciente son señales del pronto regreso de Jesús." },
+      { pregunta: "¿Qué señales habrá en el cielo?", cita: "Mateo 24:29", texto: "E inmediatamente después de la tribulación de aquellos días, el sol se oscurecerá, y la luna no dará su resplandor, y las estrellas caerán del cielo.", explicacion: "Señales cósmicas acompañarán los últimos tiempos, confirmando que la venida de Cristo está cerca." },
+      { pregunta: "¿Debemos tener miedo?", cita: "Lucas 21:28", texto: "Cuando estas cosas comiencen a suceder, erguíos y levantad vuestra cabeza, porque vuestra redención está cerca.", explicacion: "Para el creyente, las señales no deben causar temor sino esperanza, pues anuncian nuestra redención." }
+    ]
+  },
+  {
+    id: 6, titulo: "El Origen del Pecado", icono: "🍂",
+    intro: "El pecado no fue creado por Dios. Tuvo su origen en la rebelión de Lucifer en el cielo.",
+    preguntas: [
+      { pregunta: "¿Dónde se originó el pecado?", cita: "Ezequiel 28:15", texto: "Perfecto eras en todos tus caminos desde el día que fuiste creado, hasta que se halló en ti maldad.", explicacion: "Lucifer fue creado perfecto, pero eligió rebelarse contra Dios. El pecado nació de su orgullo y ambición." },
+      { pregunta: "¿Cómo entró el pecado en este mundo?", cita: "Génesis 3:6", texto: "Y vio la mujer que el árbol era bueno para comer... y tomó de su fruto, y comió; y dio también a su marido, el cual comió así como ella.", explicacion: "Adán y Eva desobedecieron a Dios al comer del fruto prohibido, trayendo el pecado y la muerte a la humanidad." },
+      { pregunta: "¿Cuál es la consecuencia del pecado?", cita: "Romanos 6:23", texto: "Porque la paga del pecado es muerte, mas la dádiva de Dios es vida eterna en Cristo Jesús Señor nuestro.", explicacion: "El pecado trae muerte, pero Dios ofrece vida eterna como regalo a través de Jesús." }
+    ]
+  },
+  {
+    id: 7, titulo: "La Salvación", icono: "✝️",
+    intro: "Dios preparó un plan maravilloso para rescatar a la humanidad del pecado y restaurar la relación con Él.",
+    preguntas: [
+      { pregunta: "¿Cómo demostró Dios su amor?", cita: "Juan 3:16", texto: "Porque de tal manera amó Dios al mundo, que ha dado a su Hijo unigénito, para que todo aquel que en él cree, no se pierda, mas tenga vida eterna.", explicacion: "El amor de Dios es tan grande que entregó lo más valioso: a su propio Hijo, para que podamos ser salvos." },
+      { pregunta: "¿Cómo somos salvos?", cita: "Efesios 2:8-9", texto: "Porque por gracia sois salvos por medio de la fe; y esto no de vosotros, pues es don de Dios; no por obras, para que nadie se gloríe.", explicacion: "La salvación es un regalo de Dios que recibimos por fe. No podemos ganarla con nuestras obras." },
+      { pregunta: "¿Hay otro camino de salvación?", cita: "Hechos 4:12", texto: "Y en ningún otro hay salvación; porque no hay otro nombre bajo el cielo, dado a los hombres, en que podamos ser salvos.", explicacion: "Jesús es el único camino de salvación. No hay otro mediador ni otro plan." }
+    ]
+  },
+  {
+    id: 8, titulo: "El Perdón de los Pecados", icono: "💧",
+    intro: "Dios ofrece perdón completo a todo aquel que se arrepiente y confiesa sus pecados con sinceridad.",
+    preguntas: [
+      { pregunta: "¿Qué sucede cuando confesamos?", cita: "1 Juan 1:9", texto: "Si confesamos nuestros pecados, él es fiel y justo para perdonar nuestros pecados, y limpiarnos de toda maldad.", explicacion: "Dios siempre está dispuesto a perdonarnos cuando venimos con un corazón sincero y arrepentido." },
+      { pregunta: "¿Qué nos pide Dios?", cita: "Hechos 3:19", texto: "Así que, arrepentíos y convertíos, para que sean borrados vuestros pecados.", explicacion: "Dios nos invita a arrepentirnos genuinamente y cambiar de dirección, dejando el pecado." },
+      { pregunta: "¿Cuán completo es el perdón de Dios?", cita: "Isaías 43:25", texto: "Yo, yo soy el que borro tus rebeliones por amor de mí mismo, y no me acordaré de tus pecados.", explicacion: "Cuando Dios perdona, lo hace completamente. Él promete no recordar nuestros pecados perdonados." }
+    ]
+  },
+  {
+    id: 9, titulo: "El Juicio", icono: "⚖️",
+    intro: "Dios ha establecido un juicio justo donde se revelará la verdad y se hará justicia perfecta.",
+    preguntas: [
+      { pregunta: "¿Habrá un juicio?", cita: "Hechos 17:31", texto: "Por cuanto ha establecido un día en el cual juzgará al mundo con justicia, por aquel varón a quien designó.", explicacion: "Dios ha designado un día para juzgar al mundo con perfecta justicia a través de Jesucristo." },
+      { pregunta: "¿Qué será examinado en el juicio?", cita: "Eclesiastés 12:14", texto: "Porque Dios traerá toda obra a juicio, juntamente con toda cosa encubierta, sea buena o sea mala.", explicacion: "En el juicio, todas nuestras acciones serán evaluadas, incluso las secretas." },
+      { pregunta: "¿Quién es nuestro abogado?", cita: "1 Juan 2:1", texto: "Si alguno hubiere pecado, abogado tenemos para con el Padre, a Jesucristo el justo.", explicacion: "Jesús mismo es nuestro defensor en el juicio. Si aceptamos su sacrificio, Él aboga por nosotros." }
+    ]
+  },
+  {
+    id: 10, titulo: "La Santa Ley de Dios", icono: "📜",
+    intro: "Los Diez Mandamientos son la expresión del carácter de Dios y la norma de conducta para la humanidad.",
+    preguntas: [
+      { pregunta: "¿Quién escribió los Diez Mandamientos?", cita: "Éxodo 31:18", texto: "Y dio a Moisés, cuando acabó de hablar con él en el monte de Sinaí, dos tablas del testimonio, tablas de piedra escritas con el dedo de Dios.", explicacion: "Dios mismo escribió los Diez Mandamientos con su propio dedo en tablas de piedra." },
+      { pregunta: "¿La ley fue abolida por Cristo?", cita: "Mateo 5:17", texto: "No penséis que he venido para abrogar la ley o los profetas; no he venido para abrogar, sino para cumplir.", explicacion: "Jesús no vino a eliminar la ley sino a cumplirla y mostrar su verdadero significado." },
+      { pregunta: "¿Cuál es el resumen de la ley?", cita: "Mateo 22:37-40", texto: "Amarás al Señor tu Dios con todo tu corazón... y amarás a tu prójimo como a ti mismo.", explicacion: "Toda la ley se resume en amar a Dios supremamente y al prójimo como a uno mismo." }
+    ]
+  },
+  {
+    id: 11, titulo: "El Día de Descanso", icono: "🕊️",
+    intro: "Dios estableció un día especial de reposo como memorial de la creación y como tiempo de comunión con Él.",
+    preguntas: [
+      { pregunta: "¿Qué día bendijo Dios?", cita: "Génesis 2:2-3", texto: "Y acabó Dios en el día séptimo la obra que hizo; y reposó el día séptimo... Y bendijo Dios el día séptimo, y lo santificó.", explicacion: "Desde la creación, Dios apartó el séptimo día como un día especial de descanso y bendición." },
+      { pregunta: "¿Qué dice el mandamiento?", cita: "Éxodo 20:8-10", texto: "Acuérdate del día de reposo para santificarlo. Seis días trabajarás... mas el séptimo día es reposo para Jehová tu Dios.", explicacion: "El cuarto mandamiento nos pide recordar y santificar el sábado como día de reposo." },
+      { pregunta: "¿Jesús guardó el sábado?", cita: "Lucas 4:16", texto: "Vino a Nazaret, donde se había criado; y en el día de reposo entró en la sinagoga, conforme a su costumbre, y se levantó a leer.", explicacion: "Jesús guardó el sábado como su costumbre, dándonos ejemplo perfecto a seguir." }
+    ]
+  },
+  {
+    id: 12, titulo: "Cómo Guardar el Sábado", icono: "🌅",
+    intro: "El sábado es un regalo de Dios para nuestra renovación espiritual, física y relacional.",
+    preguntas: [
+      { pregunta: "¿Cuándo comienza el sábado?", cita: "Levítico 23:32", texto: "De tarde a tarde guardaréis vuestro reposo.", explicacion: "El sábado bíblico comienza el viernes a la puesta del sol y termina el sábado a la puesta del sol." },
+      { pregunta: "¿Qué debemos hacer en sábado?", cita: "Isaías 58:13-14", texto: "Si retrajeres del día de reposo tu pie, de hacer tu voluntad en mi día santo, y lo llamares delicia, santo, glorioso de Jehová... entonces te deleitarás en Jehová.", explicacion: "El sábado es un día para deleitarnos en Dios, dedicado a la adoración, la comunión y hacer el bien." },
+      { pregunta: "¿Es el sábado una carga?", cita: "Marcos 2:27", texto: "El día de reposo fue hecho por causa del hombre, y no el hombre por causa del día de reposo.", explicacion: "El sábado no es una carga sino un regalo de Dios diseñado para nuestro beneficio y gozo." }
+    ]
+  },
+  {
+    id: 13, titulo: "La Muerte", icono: "🌾",
+    intro: "La Biblia enseña la verdad acerca de lo que sucede cuando una persona muere.",
+    preguntas: [
+      { pregunta: "¿Qué sucede al morir?", cita: "Eclesiastés 9:5", texto: "Porque los que viven saben que han de morir; pero los muertos nada saben.", explicacion: "La Biblia enseña que los muertos no saben nada. La muerte es como un sueño inconsciente hasta la resurrección." },
+      { pregunta: "¿De qué fue formado el hombre?", cita: "Génesis 2:7", texto: "Entonces Jehová Dios formó al hombre del polvo de la tierra, y sopló en su nariz aliento de vida, y fue el hombre un ser viviente.", explicacion: "El ser humano fue formado del polvo + aliento de vida = ser viviente. Al morir, este proceso se revierte." },
+      { pregunta: "¿Hay esperanza después de la muerte?", cita: "Juan 11:25", texto: "Yo soy la resurrección y la vida; el que cree en mí, aunque esté muerto, vivirá.", explicacion: "Jesús es la resurrección y la vida. Los que creen en Él serán resucitados cuando Él venga." }
+    ]
+  },
+  {
+    id: 14, titulo: "La Iglesia", icono: "⛪",
+    intro: "Dios estableció su iglesia como una comunidad de creyentes unidos por la fe en Cristo.",
+    preguntas: [
+      { pregunta: "¿Quién es el fundamento de la iglesia?", cita: "1 Corintios 3:11", texto: "Porque nadie puede poner otro fundamento que el que está puesto, el cual es Jesucristo.", explicacion: "Cristo es el único fundamento de la verdadera iglesia. Toda iglesia debe estar edificada sobre Él." },
+      { pregunta: "¿Cuáles son las señales de la iglesia verdadera?", cita: "Apocalipsis 12:17", texto: "Los que guardan los mandamientos de Dios y tienen el testimonio de Jesucristo.", explicacion: "La iglesia verdadera se identifica por guardar los mandamientos de Dios y tener el testimonio de Jesús." },
+      { pregunta: "¿Por qué congregarnos?", cita: "Hebreos 10:25", texto: "No dejando de congregarnos, como algunos tienen por costumbre, sino exhortándonos.", explicacion: "Dios desea que los creyentes se reúnan para fortalecerse mutuamente y crecer en la fe." }
+    ]
+  },
+  {
+    id: 15, titulo: "El Don de Profecía", icono: "🔥",
+    intro: "Dios ha dado el don de profecía a su iglesia como guía especial para los últimos tiempos.",
+    preguntas: [
+      { pregunta: "¿Qué dones dio Dios a su iglesia?", cita: "Efesios 4:11-12", texto: "Y él mismo constituyó a unos, apóstoles; a otros, profetas; a otros, evangelistas; a otros, pastores y maestros.", explicacion: "Dios otorgó diferentes dones a la iglesia, incluyendo el don de profecía, para edificar a los creyentes." },
+      { pregunta: "¿Cómo probar un profeta verdadero?", cita: "Isaías 8:20", texto: "¡A la ley y al testimonio! Si no dijeren conforme a esto, es porque no les ha amanecido.", explicacion: "Todo profeta verdadero debe estar en armonía con la Biblia. Si contradice las Escrituras, no es de Dios." },
+      { pregunta: "¿Tendría la iglesia final este don?", cita: "Apocalipsis 19:10", texto: "El testimonio de Jesús es el espíritu de la profecía.", explicacion: "La iglesia de los últimos tiempos tendría el don profético como parte de su identidad." }
+    ]
+  },
+  {
+    id: 16, titulo: "Las Normas Cristianas", icono: "🌿",
+    intro: "Dios nos da principios de vida que promueven nuestra salud física, mental y espiritual.",
+    preguntas: [
+      { pregunta: "¿Qué dice la Biblia sobre nuestro cuerpo?", cita: "1 Corintios 6:19-20", texto: "¿O ignoráis que vuestro cuerpo es templo del Espíritu Santo...? Glorificad, pues, a Dios en vuestro cuerpo.", explicacion: "Nuestro cuerpo es templo del Espíritu Santo. Debemos cuidarlo honrando a Dios con nuestros hábitos." },
+      { pregunta: "¿Qué principio guía nuestra conducta?", cita: "1 Corintios 10:31", texto: "Si, pues, coméis o bebéis, o hacéis otra cosa, hacedlo todo para la gloria de Dios.", explicacion: "Todo lo que hacemos debe glorificar a Dios, incluyendo lo que comemos, bebemos y cómo vivimos." },
+      { pregunta: "¿Qué alimentos recomienda la Biblia?", cita: "Génesis 1:29", texto: "He aquí que os he dado toda planta que da semilla... y todo árbol en que hay fruto y que da semilla; os serán para comer.", explicacion: "La dieta original de Dios fue vegetariana. Él desea que cuidemos nuestra salud con una alimentación saludable." }
+    ]
+  },
+  {
+    id: 17, titulo: "El Bautismo", icono: "💦",
+    intro: "El bautismo es el símbolo público de nuestra decisión de seguir a Jesús, representando muerte al pecado y nueva vida.",
+    preguntas: [
+      { pregunta: "¿Qué ordenó Jesús?", cita: "Mateo 28:19", texto: "Por tanto, id, y haced discípulos a todas las naciones, bautizándolos en el nombre del Padre, y del Hijo, y del Espíritu Santo.", explicacion: "Jesús mismo ordenó el bautismo como parte esencial de hacer discípulos." },
+      { pregunta: "¿Qué representa el bautismo?", cita: "Romanos 6:4", texto: "Porque somos sepultados juntamente con él para muerte por el bautismo, a fin de que como Cristo resucitó... así también nosotros andemos en vida nueva.", explicacion: "El bautismo simboliza la muerte de nuestra vieja vida y el nacimiento a una nueva vida con Cristo." },
+      { pregunta: "¿Cómo debe ser el bautismo?", cita: "Mateo 3:16", texto: "Y Jesús, después que fue bautizado, subió luego del agua.", explicacion: "El bautismo bíblico es por inmersión, tal como fue bautizado Jesús, simbolizando sepultura y resurrección." }
+    ]
+  },
+  {
+    id: 18, titulo: "El Sostén de la Iglesia", icono: "🤝",
+    intro: "Dios estableció un plan para el sostén de su obra a través de los diezmos y las ofrendas.",
+    preguntas: [
+      { pregunta: "¿Qué es el diezmo?", cita: "Malaquías 3:10", texto: "Traed todos los diezmos al alfolí y haya alimento en mi casa; y probadme ahora en esto... si no os abriré las ventanas de los cielos.", explicacion: "El diezmo es la décima parte de nuestras ganancias que devolvemos a Dios. Él promete bendecirnos abundantemente." },
+      { pregunta: "¿A quién pertenece el diezmo?", cita: "Levítico 27:30", texto: "Y el diezmo de la tierra, así de la simiente de la tierra como del fruto de los árboles, de Jehová es; es cosa dedicada a Jehová.", explicacion: "El diezmo pertenece a Dios. Devolverlo es un acto de fidelidad y reconocimiento de que todo proviene de Él." },
+      { pregunta: "¿Cómo debemos ofrendar?", cita: "2 Corintios 9:7", texto: "Cada uno dé como propuso en su corazón: no con tristeza, ni por necesidad, porque Dios ama al dador alegre.", explicacion: "Las ofrendas deben ser voluntarias y alegres, dadas con un corazón agradecido." }
+    ]
+  },
+  {
+    id: 19, titulo: "La Vida Cristiana", icono: "🌱",
+    intro: "La vida cristiana es un caminar diario con Jesús, creciendo en gracia y en conocimiento de Él.",
+    preguntas: [
+      { pregunta: "¿Cómo crecemos espiritualmente?", cita: "2 Pedro 3:18", texto: "Antes bien, creced en la gracia y el conocimiento de nuestro Señor y Salvador Jesucristo.", explicacion: "El crecimiento espiritual es un proceso continuo de conocer más a Jesús y reflejar su carácter." },
+      { pregunta: "¿Qué frutos produce el Espíritu?", cita: "Gálatas 5:22-23", texto: "Mas el fruto del Espíritu es amor, gozo, paz, paciencia, benignidad, bondad, fe, mansedumbre, templanza.", explicacion: "Cuando el Espíritu Santo habita en nosotros, produce frutos hermosos que transforman nuestro carácter." },
+      { pregunta: "¿Cuál es nuestra misión?", cita: "Mateo 28:19-20", texto: "Por tanto, id, y haced discípulos a todas las naciones... enseñándoles que guarden todas las cosas que os he mandado.", explicacion: "Cada cristiano tiene la misión de compartir el evangelio y hacer discípulos para Cristo." }
+    ]
+  },
+  {
+    id: 20, titulo: "Dios nos Llama", icono: "📯",
+    intro: "Dios te está llamando hoy a tomar la decisión más importante de tu vida: aceptar a Jesús como tu Salvador personal.",
+    preguntas: [
+      { pregunta: "¿Qué invitación hace Jesús?", cita: "Apocalipsis 3:20", texto: "He aquí, yo estoy a la puerta y llamo; si alguno oye mi voz y abre la puerta, entraré a él, y cenaré con él, y él conmigo.", explicacion: "Jesús está tocando la puerta de tu corazón. Él no la fuerza, espera que tú le abras voluntariamente." },
+      { pregunta: "¿Cuándo debemos responder?", cita: "2 Corintios 6:2", texto: "He aquí ahora el tiempo aceptable; he aquí ahora el día de salvación.", explicacion: "El momento de decidir es ahora. No sabemos qué traerá el mañana, pero hoy podemos aceptar a Jesús." },
+      { pregunta: "¿Qué promesa tiene quien acepta a Jesús?", cita: "Juan 1:12", texto: "Mas a todos los que le recibieron, a los que creen en su nombre, les dio potestad de ser hechos hijos de Dios.", explicacion: "Al aceptar a Jesús, nos convertimos en hijos de Dios con todas las promesas y bendiciones que esto implica." }
+    ]
+  }
+];
+
+const INSTRUCTORES = [
+  "Pastor Principal", "Anciano de Iglesia", "Líder de Grupo Pequeño",
+  "Instructor Bíblico", "Diácono / Diaconisa", "Misionero Laico"
+];
+
+const DEPARTAMENTOS_CO = [
+  "Amazonas","Antioquia","Arauca","Atlántico","Bolívar","Boyacá","Caldas",
+  "Caquetá","Casanare","Cauca","Cesar","Chocó","Córdoba","Cundinamarca",
+  "Guainía","Guaviare","Huila","La Guajira","Magdalena","Meta","Nariño",
+  "Norte de Santander","Putumayo","Quindío","Risaralda",
+  "San Andrés y Providencia","Santander","Sucre","Tolima","Valle del Cauca",
+  "Vaupés","Vichada","Otro País"
+];
+
+// ─── STYLES ───
+const fonts = `
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Source+Sans+3:wght@300;400;500;600;700&display=swap');
+`;
+
+// ─── MAIN APP ───
+function App() {
+  const [user, setUser] = useState(null);
+  const [screen, setScreen] = useState("welcome");
+  const [currentLeccion, setCurrentLeccion] = useState(null);
+  const [progress, setProgress] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [syncStatus, setSyncStatus] = useState("idle"); // idle, syncing, synced, error
+
+  // Load user & progress on mount
+  useEffect(() => {
+    (async () => {
+      try {
+        // Try loading from local storage first (fast)
+        const u = (() => { const v = localStorage.getItem("fdj_user"); return v ? { value: v } : null; })();
+        if (u) {
+          const userData = JSON.parse(u.value);
+          setUser(userData);
+          setScreen("dashboard");
+
+          // If user has supabase ID, load progress from Supabase
+          if (userData.supabase_id) {
+            try {
+              const rows = await supaFetch(`progreso?estudiante_id=eq.${userData.supabase_id}&select=leccion_id,completed_at`);
+              if (rows && rows.length > 0) {
+                const p = {};
+                rows.forEach(r => { p[r.leccion_id] = { completed: true, date: r.completed_at }; });
+                setProgress(p);
+                localStorage.setItem("fdj_progress", JSON.stringify(p));
+              }
+            } catch {
+              // Fallback to local progress
+              const p = (() => { const v = localStorage.getItem("fdj_progress"); return v ? { value: v } : null; })();
+              if (p) setProgress(JSON.parse(p.value));
+            }
+          } else {
+            const p = (() => { const v = localStorage.getItem("fdj_progress"); return v ? { value: v } : null; })();
+            if (p) setProgress(JSON.parse(p.value));
+          }
+        }
+      } catch {}
+      setLoading(false);
+    })();
+  }, []);
+
+  const saveUser = async (data) => {
+    setUser(data);
+    try { localStorage.setItem("fdj_user", JSON.stringify(data)); } catch {}
+  };
+
+  const saveProgress = async (newProgress) => {
+    setProgress(newProgress);
+    try { localStorage.setItem("fdj_progress", JSON.stringify(newProgress)); } catch {}
+  };
+
+  const completarLeccion = async (leccionId) => {
+    const np = { ...progress, [leccionId]: { completed: true, date: new Date().toISOString() } };
+    await saveProgress(np);
+
+    // Sync to Supabase
+    if (user?.supabase_id) {
+      setSyncStatus("syncing");
+      try {
+        await supaFetch("progreso", {
+          method: "POST",
+          body: {
+            estudiante_id: user.supabase_id,
+            leccion_id: leccionId,
+            correctas: 3,
+            total_preguntas: 3,
+          },
+          headers: { Prefer: "return=representation,resolution=merge-duplicates" },
+          prefer: "return=representation,resolution=merge-duplicates",
+        });
+        setSyncStatus("synced");
+      } catch (err) {
+        console.error("Error syncing progress:", err);
+        setSyncStatus("error");
+      }
+      setTimeout(() => setSyncStatus("idle"), 2500);
+    }
+
+    const totalCompleted = Object.keys(np).filter(k => np[k]?.completed).length;
+    if (totalCompleted === 20) {
+      setShowConfetti(true);
+      setTimeout(() => { setShowConfetti(false); setScreen("certificado"); }, 3000);
+    } else {
+      setCurrentLeccion(null);
+      setScreen("dashboard");
+    }
+  };
+
+  const completedCount = Object.keys(progress).filter(k => progress[k]?.completed).length;
+  const pct = Math.round((completedCount / 20) * 100);
+
+  const resetAll = async () => {
+    try { localStorage.removeItem("fdj_user"); } catch {}
+    try { localStorage.removeItem("fdj_progress"); } catch {}
+    setUser(null);
+    setProgress({});
+    setScreen("welcome");
+    setCurrentLeccion(null);
+  };
+
+  if (loading) return <LoadingScreen />;
+
+  return (
+    <div style={{ fontFamily: "'Source Sans 3', sans-serif", minHeight: "100vh", background: "linear-gradient(160deg, #030f1c 0%, #061a2e 45%, #0a1f38 100%)", color: "#e8f4f8" }}>
+      <style>{fonts}</style>
+      {showConfetti && <Confetti />}
+
+      {/* Sync indicator */}
+      {syncStatus !== "idle" && (
+        <div style={{
+          position: "fixed", top: 12, right: 12, zIndex: 9999,
+          padding: "8px 16px", borderRadius: 20, fontSize: 12, fontWeight: 600,
+          background: syncStatus === "syncing" ? "rgba(0,212,200,.9)" : syncStatus === "synced" ? "rgba(34,197,94,.9)" : "rgba(239,68,68,.9)",
+          color: "#fff",
+          animation: "fadeUp .3s ease",
+          backdropFilter: "blur(8px)",
+        }}>
+          {syncStatus === "syncing" && "⏳ Sincronizando..."}
+          {syncStatus === "synced" && "✓ Guardado en la nube"}
+          {syncStatus === "error" && "⚠ Guardado localmente"}
+        </div>
+      )}
+
+      {screen === "welcome" && <WelcomeScreen onStart={() => setScreen("register")} onAdmin={() => setScreen("admin")} />}
+      {screen === "register" && <RegisterScreen onRegister={(d) => { saveUser(d); setScreen("dashboard"); }} onBack={() => setScreen("welcome")} />}
+      {screen === "dashboard" && (
+        <Dashboard
+          user={user}
+          progress={progress}
+          pct={pct}
+          completedCount={completedCount}
+          onSelectLeccion={(l) => { setCurrentLeccion(l); setScreen("leccion"); }}
+          onCertificado={() => setScreen("certificado")}
+          onReset={resetAll}
+        />
+      )}
+      {screen === "leccion" && currentLeccion && (
+        <LeccionView
+          leccion={currentLeccion}
+          onComplete={() => completarLeccion(currentLeccion.id)}
+          onBack={() => { setCurrentLeccion(null); setScreen("dashboard"); }}
+          isCompleted={!!progress[currentLeccion.id]?.completed}
+        />
+      )}
+      {screen === "certificado" && (
+        <CertificadoView user={user} onBack={() => setScreen("dashboard")} />
+      )}
+      {screen === "admin" && (
+        <AdminPanel onBack={() => setScreen("welcome")} />
+      )}
+    </div>
+  );
+}
+
+// ─── LOADING ───
+function LoadingScreen() {
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: "linear-gradient(160deg, #030f1c, #061a2e, #0a1f38)" }}>
+      <div style={{ textAlign: "center" }}>
+        <img src="logo.png.jpeg" alt="Logo" style={{ width: 80, height: 80, borderRadius: "50%", marginBottom: 20, animation: "pulse 1.5s infinite", border: "2px solid rgba(0,212,200,.4)", boxShadow: "0 0 30px rgba(0,212,200,.3)" }} />
+        <p style={{ color: "#8ec8d0", fontFamily: "'Source Sans 3', sans-serif", letterSpacing: 3, fontSize: 12 }}>CARGANDO...</p>
+      </div>
+    </div>
+  );
+}
+
+// ─── CONFETTI ───
+function Confetti() {
+  const colors = ["#00d4c8", "#e91e8c", "#7c3aed", "#4de8e0", "#fff", "#f06fba", "#60a5fa"];
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 9999, pointerEvents: "none", overflow: "hidden" }}>
+      {Array.from({ length: 60 }).map((_, i) => (
+        <div key={i} style={{
+          position: "absolute",
+          top: -20,
+          left: `${Math.random() * 100}%`,
+          width: Math.random() * 10 + 5,
+          height: Math.random() * 10 + 5,
+          background: colors[i % colors.length],
+          borderRadius: Math.random() > 0.5 ? "50%" : "2px",
+          animation: `fall ${Math.random() * 2 + 2}s linear ${Math.random() * 1}s forwards`,
+          transform: `rotate(${Math.random() * 360}deg)`,
+        }} />
+      ))}
+      <style>{`@keyframes fall { to { top: 110vh; opacity: 0; transform: rotate(720deg) translateX(${Math.random() > 0.5 ? '' : '-'}80px); } }`}</style>
+    </div>
+  );
+}
+
+// ─── WELCOME ───
+function WelcomeScreen({ onStart, onAdmin }) {
+  return (
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 16px", textAlign: "center", position: "relative", overflow: "hidden" }}>
+      {/* Ambient glow blobs */}
+      <div style={{ position: "absolute", top: "10%", left: "5%", width: 320, height: 320, borderRadius: "50%", background: "radial-gradient(circle, rgba(0,212,200,.12) 0%, transparent 70%)", pointerEvents: "none" }} />
+      <div style={{ position: "absolute", bottom: "15%", right: "5%", width: 280, height: 280, borderRadius: "50%", background: "radial-gradient(circle, rgba(233,30,140,.1) 0%, transparent 70%)", pointerEvents: "none" }} />
+      <div style={{ animation: "fadeUp .9s ease", maxWidth: 580, width: "100%", position: "relative", zIndex: 1 }}>
+        {/* Logo */}
+        <div style={{ marginBottom: 28 }}>
+          <div style={{ display: "inline-block", padding: 5, borderRadius: "50%", background: "linear-gradient(135deg, rgba(0,212,200,.3), rgba(233,30,140,.3))", animation: "glowPulse 3s ease-in-out infinite" }}>
+            <img src="logo.png.jpeg" alt="La Fe de Jesús" style={{ width: 110, height: 110, borderRadius: "50%", display: "block", border: "3px solid rgba(0,212,200,.2)" }} />
+          </div>
+        </div>
+        <div style={{ fontSize: 11, letterSpacing: 6, color: "#5a9aaa", textTransform: "uppercase", marginBottom: 16, fontWeight: 600 }}>
+          Iglesia Adventista del Séptimo Día
+        </div>
+        <div style={{ width: 120, height: 2, background: "linear-gradient(90deg, transparent, #00d4c8, #e91e8c, transparent)", margin: "0 auto 24px" }} />
+        <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(38px, 9vw, 68px)", fontWeight: 800, lineHeight: 1.05, margin: "0 0 10px", background: "linear-gradient(135deg, #00d4c8 0%, #7c3aed 50%, #e91e8c 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+          La Fe de Jesús
+        </h1>
+        <p style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(15px, 3vw, 20px)", fontWeight: 400, fontStyle: "italic", color: "#5a9aaa", margin: "0 0 24px" }}>
+          Curso Bíblico — 20 Lecciones
+        </p>
+        <p style={{ fontSize: 15, color: "#3d6878", maxWidth: 460, margin: "0 auto 40px", lineHeight: 1.8 }}>
+          Un viaje transformador a través de las verdades esenciales del cristianismo, basado en las Sagradas Escrituras.
+        </p>
+        <button onClick={onStart} style={{
+          background: "linear-gradient(135deg, #00d4c8 0%, #7c3aed 50%, #e91e8c 100%)",
+          color: "#fff", border: "none", padding: "18px 60px", borderRadius: 50,
+          fontSize: 16, fontWeight: 700, cursor: "pointer", letterSpacing: 1.5,
+          fontFamily: "'Source Sans 3', sans-serif",
+          boxShadow: "0 4px 32px rgba(0,212,200,.3), 0 4px 32px rgba(233,30,140,.2)",
+          transition: "all .3s ease",
+        }}
+          onMouseOver={e => { e.currentTarget.style.transform = "translateY(-3px) scale(1.03)"; e.currentTarget.style.boxShadow = "0 10px 48px rgba(0,212,200,.45), 0 10px 48px rgba(233,30,140,.3)"; }}
+          onMouseOut={e => { e.currentTarget.style.transform = "translateY(0) scale(1)"; e.currentTarget.style.boxShadow = "0 4px 32px rgba(0,212,200,.3), 0 4px 32px rgba(233,30,140,.2)"; }}
+        >
+          COMENZAR MI CURSO
+        </button>
+        {/* Stats */}
+        <div style={{ marginTop: 52, display: "flex", gap: 40, justifyContent: "center", flexWrap: "wrap" }}>
+          {[["20", "Lecciones"], ["60+", "Versículos"], ["✓", "Certificado"]].map(([n, l]) => (
+            <div key={l} style={{ textAlign: "center" }}>
+              <div style={{ fontSize: 30, fontWeight: 800, background: "linear-gradient(135deg, #00d4c8, #e91e8c)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontFamily: "'Playfair Display', serif" }}>{n}</div>
+              <div style={{ fontSize: 10, color: "#3d6878", letterSpacing: 2, textTransform: "uppercase", marginTop: 4 }}>{l}</div>
+            </div>
+          ))}
+        </div>
+        {/* Divider */}
+        <div style={{ width: 60, height: 1, background: "linear-gradient(90deg, transparent, rgba(0,212,200,.3), transparent)", margin: "40px auto 0" }} />
+        {/* Admin access */}
+        <button onClick={onAdmin} style={{
+          marginTop: 20, background: "none", border: "1px solid rgba(0,212,200,.2)",
+          color: "#3d6878", fontSize: 12, cursor: "pointer",
+          fontFamily: "'Source Sans 3'", letterSpacing: 1,
+          transition: "all .25s", padding: "8px 22px", borderRadius: 20,
+        }}
+          onMouseOver={e => { e.currentTarget.style.color = "#00d4c8"; e.currentTarget.style.borderColor = "rgba(0,212,200,.5)"; e.currentTarget.style.background = "rgba(0,212,200,.05)"; }}
+          onMouseOut={e => { e.currentTarget.style.color = "#3d6878"; e.currentTarget.style.borderColor = "rgba(0,212,200,.2)"; e.currentTarget.style.background = "none"; }}
+        >
+          🔒 Acceso Administrador
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── REGISTER (CONNECTED TO SUPABASE) ───
+function RegisterScreen({ onRegister, onBack }) {
+  const [form, setForm] = useState({ nombre: "", telefono: "", departamento: "", ciudad: "", instructor: "", nombreInstructor: "", distritoId: "", iglesiaId: "" });
+  const [errors, setErrors] = useState({});
+  const [distritos, setDistritos] = useState([]);
+  const [iglesias, setIglesias] = useState([]);
+  const [loadingData, setLoadingData] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+
+  // Load distritos and iglesias from Supabase on mount
+  useEffect(() => {
+    (async () => {
+      try {
+        const [distData, iglData] = await Promise.all([
+          supaFetch("distritos?select=id,nombre&order=nombre"),
+          supaFetch("iglesias?select=id,nombre,distrito_id&order=nombre"),
+        ]);
+        setDistritos(distData || []);
+        setIglesias(iglData || []);
+      } catch (err) {
+        console.error("Error loading data:", err);
+      }
+      setLoadingData(false);
+    })();
+  }, []);
+
+  // Iglesias filtered by selected distrito
+  const iglesiasFiltradas = form.distritoId
+    ? iglesias.filter(i => i.distrito_id === form.distritoId)
+    : [];
+
+  const validate = () => {
+    const e = {};
+    if (!form.nombre.trim()) e.nombre = true;
+    if (!form.telefono.trim()) e.telefono = true;
+    if (!form.departamento) e.departamento = true;
+    if (!form.ciudad.trim()) e.ciudad = true;
+    if (!form.instructor) e.instructor = true;
+    if (!form.nombreInstructor.trim()) e.nombreInstructor = true;
+    if (!form.distritoId) e.distritoId = true;
+    if (!form.iglesiaId) e.iglesiaId = true;
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const handleSubmit = async () => {
+    if (!validate()) return;
+    setSubmitting(true);
+    setSubmitError("");
+
+    try {
+      // Insert student in Supabase
+      const result = await supaFetch("estudiantes", {
+        method: "POST",
+        body: {
+          nombre: form.nombre.trim(),
+          telefono: form.telefono.trim(),
+          iglesia_id: form.iglesiaId,
+          instructor_nombre: form.nombreInstructor.trim(),
+          instructor_rol: form.instructor,
+        },
+      });
+
+      const supabaseId = result?.[0]?.id;
+      const iglesiaMatch = iglesias.find(i => i.id === form.iglesiaId);
+      const distritoMatch = distritos.find(d => d.id === form.distritoId);
+
+      // Save locally with supabase ID
+      const userData = {
+        ...form,
+        supabase_id: supabaseId,
+        registeredAt: new Date().toISOString(),
+        iglesia_nombre: iglesiaMatch?.nombre || null,
+        distrito_nombre: distritoMatch?.nombre || null,
+      };
+      onRegister(userData);
+    } catch (err) {
+      console.error("Registration error:", err);
+      setSubmitError("No se pudo conectar al servidor. Tu registro se guardó localmente y se sincronizará después.");
+      const userData = {
+        ...form,
+        supabase_id: null,
+        registeredAt: new Date().toISOString(),
+      };
+      setTimeout(() => onRegister(userData), 2000);
+    }
+    setSubmitting(false);
+  };
+
+  const inputStyle = (hasError) => ({
+    width: "100%", padding: "14px 16px", background: "rgba(0,212,200,.04)",
+    border: `1.5px solid ${hasError ? "#ef4444" : "rgba(0,212,200,.15)"}`,
+    borderRadius: 12, color: "#e8f4f8", fontSize: 15,
+    fontFamily: "'Source Sans 3', sans-serif", outline: "none",
+    transition: "border .3s, background .3s", boxSizing: "border-box",
+  });
+
+  const labelStyle = { fontSize: 13, fontWeight: 600, color: "#5a9aaa", marginBottom: 6, display: "block", letterSpacing: .5 };
+
+  return (
+    <div style={{ minHeight: "100vh", padding: "24px 16px", display: "flex", justifyContent: "center", alignItems: "flex-start" }}>
+      <div style={{ maxWidth: 520, width: "100%", paddingTop: 20, animation: "fadeUp .6s ease" }}>
+        <button onClick={onBack} style={{ background: "none", border: "none", color: "#5a9aaa", cursor: "pointer", fontSize: 14, marginBottom: 24, display: "flex", alignItems: "center", gap: 6, fontFamily: "'Source Sans 3'", transition: "color .2s" }}
+          onMouseOver={e => e.target.style.color = "#00d4c8"} onMouseOut={e => e.target.style.color = "#5a9aaa"}
+        >
+          ← Volver
+        </button>
+        <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, fontWeight: 700, margin: "0 0 4px", background: "linear-gradient(135deg,#00d4c8,#e91e8c)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Registro de Estudiante</h2>
+        <p style={{ color: "#3d6878", margin: "0 0 28px", fontSize: 14 }}>Completa tus datos para iniciar el curso bíblico</p>
+
+        <div style={{ background: "rgba(0,212,200,.03)", borderRadius: 20, padding: "28px 24px", border: "1px solid rgba(0,212,200,.1)" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+            <div>
+              <label style={labelStyle}>Nombre completo *</label>
+              <input style={inputStyle(errors.nombre)} placeholder="Tu nombre y apellido" value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })} onFocus={e => e.target.style.borderColor = "#00d4c8"} onBlur={e => e.target.style.borderColor = errors.nombre ? "#ef4444" : "rgba(0,212,200,.15)"} />
+            </div>
+            <div>
+              <label style={labelStyle}>WhatsApp / Teléfono *</label>
+              <input style={inputStyle(errors.telefono)} placeholder="+57 300 000 0000" value={form.telefono} onChange={e => setForm({ ...form, telefono: e.target.value })} onFocus={e => e.target.style.borderColor = "#00d4c8"} onBlur={e => e.target.style.borderColor = errors.telefono ? "#ef4444" : "rgba(0,212,200,.15)"} />
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+              <div>
+                <label style={labelStyle}>Departamento *</label>
+                <select style={{ ...inputStyle(errors.departamento), appearance: "none", cursor: "pointer" }} value={form.departamento} onChange={e => setForm({ ...form, departamento: e.target.value })} onFocus={e => e.target.style.borderColor = "#00d4c8"} onBlur={e => e.target.style.borderColor = errors.departamento ? "#ef4444" : "rgba(0,212,200,.15)"}>
+                  <option value="" style={{ background: "#030f1c" }}>Seleccionar...</option>
+                  {DEPARTAMENTOS_CO.map(d => <option key={d} value={d} style={{ background: "#030f1c" }}>{d}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={labelStyle}>Ciudad *</label>
+                <input style={inputStyle(errors.ciudad)} placeholder="Tu ciudad" value={form.ciudad} onChange={e => setForm({ ...form, ciudad: e.target.value })} onFocus={e => e.target.style.borderColor = "#00d4c8"} onBlur={e => e.target.style.borderColor = errors.ciudad ? "#ef4444" : "rgba(0,212,200,.15)"} />
+              </div>
+            </div>
+
+            {/* DISTRITO → IGLESIA (dropdowns) */}
+            <div style={{ borderTop: "1px solid rgba(255,255,255,.08)", paddingTop: 18, marginTop: 4 }}>
+              <p style={{ fontSize: 13, background: "linear-gradient(135deg,#00d4c8,#e91e8c)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontWeight: 700, margin: "0 0 14px", letterSpacing: .5 }}>⛪ DISTRITO E IGLESIA</p>
+              {loadingData ? (
+                <div style={{ fontSize: 13, color: "#888", textAlign: "center", padding: "12px 0" }}>Cargando distritos e iglesias...</div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                  <div>
+                    <label style={labelStyle}>Distrito *</label>
+                    <select
+                      style={{ ...inputStyle(errors.distritoId), appearance: "none", cursor: "pointer" }}
+                      value={form.distritoId}
+                      onChange={e => setForm({ ...form, distritoId: e.target.value, iglesiaId: "" })}
+                      onFocus={e => e.target.style.borderColor = "#00d4c8"}
+                      onBlur={e => e.target.style.borderColor = errors.distritoId ? "#ef4444" : "rgba(0,212,200,.15)"}
+                    >
+                      <option value="" style={{ background: "#030f1c" }}>Seleccionar distrito...</option>
+                      {distritos.map(d => (
+                        <option key={d.id} value={d.id} style={{ background: "#030f1c" }}>{d.nombre}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label style={labelStyle}>Iglesia *</label>
+                    <select
+                      style={{ ...inputStyle(errors.iglesiaId), appearance: "none", cursor: form.distritoId ? "pointer" : "not-allowed", opacity: form.distritoId ? 1 : 0.5 }}
+                      value={form.iglesiaId}
+                      onChange={e => setForm({ ...form, iglesiaId: e.target.value })}
+                      onFocus={e => e.target.style.borderColor = "#00d4c8"}
+                      onBlur={e => e.target.style.borderColor = errors.iglesiaId ? "#ef4444" : "rgba(0,212,200,.15)"}
+                      disabled={!form.distritoId}
+                    >
+                      <option value="" style={{ background: "#030f1c" }}>
+                        {!form.distritoId ? "Primero selecciona un distrito" : iglesiasFiltradas.length === 0 ? "No hay iglesias en este distrito" : "Seleccionar iglesia..."}
+                      </option>
+                      {iglesiasFiltradas.map(i => (
+                        <option key={i.id} value={i.id} style={{ background: "#030f1c" }}>{i.nombre}</option>
+                      ))}
+                    </select>
+                  </div>
+                  {form.iglesiaId && (
+                    <div style={{ padding: "10px 14px", background: "rgba(34,197,94,.1)", border: "1px solid rgba(34,197,94,.2)", borderRadius: 10, fontSize: 13 }}>
+                      <span style={{ color: "#22c55e", fontWeight: 600 }}>✓</span>{" "}
+                      <span style={{ color: "#c4b5a0" }}>{iglesias.find(i => i.id === form.iglesiaId)?.nombre}</span>
+                      <span style={{ color: "#888" }}> — {distritos.find(d => d.id === form.distritoId)?.nombre}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div style={{ borderTop: "1px solid rgba(255,255,255,.08)", paddingTop: 18, marginTop: 4 }}>
+              <p style={{ fontSize: 13, background: "linear-gradient(135deg,#00d4c8,#e91e8c)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontWeight: 700, margin: "0 0 14px", letterSpacing: .5 }}>👤 INFORMACIÓN DEL INSTRUCTOR</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                <div>
+                  <label style={labelStyle}>Rol del instructor *</label>
+                  <select style={{ ...inputStyle(errors.instructor), appearance: "none", cursor: "pointer" }} value={form.instructor} onChange={e => setForm({ ...form, instructor: e.target.value })} onFocus={e => e.target.style.borderColor = "#00d4c8"} onBlur={e => e.target.style.borderColor = errors.instructor ? "#ef4444" : "rgba(0,212,200,.15)"}>
+                    <option value="" style={{ background: "#030f1c" }}>Seleccionar rol...</option>
+                    {INSTRUCTORES.map(i => <option key={i} value={i} style={{ background: "#030f1c" }}>{i}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={labelStyle}>Nombre del instructor *</label>
+                  <input style={inputStyle(errors.nombreInstructor)} placeholder="Nombre de quien le da el curso" value={form.nombreInstructor} onChange={e => setForm({ ...form, nombreInstructor: e.target.value })} onFocus={e => e.target.style.borderColor = "#00d4c8"} onBlur={e => e.target.style.borderColor = errors.nombreInstructor ? "#ef4444" : "rgba(0,212,200,.15)"} />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {Object.keys(errors).length > 0 && (
+            <p style={{ color: "#ef4444", fontSize: 13, marginTop: 14, textAlign: "center" }}>
+              Por favor completa todos los campos marcados con *
+            </p>
+          )}
+
+          {submitError && (
+            <p style={{ color: "#00d4c8", fontSize: 13, marginTop: 14, textAlign: "center", background: "rgba(0,212,200,.06)", padding: "10px 14px", borderRadius: 10 }}>
+              {submitError}
+            </p>
+          )}
+
+          <button onClick={handleSubmit} disabled={submitting} style={{
+            width: "100%", marginTop: 24, padding: "16px",
+            background: submitting ? "rgba(0,212,200,.4)" : "linear-gradient(135deg, #00d4c8, #7c3aed, #e91e8c)",
+            color: "#fff", border: "none", borderRadius: 12,
+            fontSize: 16, fontWeight: 700, cursor: submitting ? "not-allowed" : "pointer",
+            fontFamily: "'Source Sans 3', sans-serif",
+            boxShadow: submitting ? "none" : "0 4px 24px rgba(0,212,200,.25)",
+            transition: "transform .2s",
+          }}
+            onMouseOver={e => !submitting && (e.target.style.transform = "translateY(-1px)")}
+            onMouseOut={e => e.target.style.transform = "translateY(0)"}
+          >
+            {submitting ? "REGISTRANDO..." : "REGISTRARME Y COMENZAR"}
+          </button>
+        </div>
+        <style>{`@keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }`}</style>
+      </div>
+    </div>
+  );
+}
+
+// ─── DASHBOARD ───
+function Dashboard({ user, progress, pct, completedCount, onSelectLeccion, onCertificado, onReset }) {
+  const allDone = completedCount === 20;
+
+  return (
+    <div style={{ minHeight: "100vh", padding: "24px 16px 60px" }}>
+      <div style={{ maxWidth: 720, margin: "0 auto", animation: "fadeUp .5s ease" }}>
+        {/* Header */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 28, flexWrap: "wrap", gap: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <img src="logo.png.jpeg" alt="Logo" style={{ width: 48, height: 48, borderRadius: "50%", border: "2px solid rgba(0,212,200,.35)", flexShrink: 0 }} />
+            <div>
+              <div style={{ fontSize: 11, letterSpacing: 4, color: "#5a9aaa", textTransform: "uppercase", marginBottom: 3 }}>Curso Bíblico</div>
+              <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(22px, 5vw, 34px)", fontWeight: 700, margin: 0, background: "linear-gradient(135deg, #00d4c8, #e91e8c)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>La Fe de Jesús</h1>
+            </div>
+          </div>
+          <div style={{ textAlign: "right" }}>
+            <div style={{ fontSize: 14, color: "#e8f4f8", fontWeight: 600 }}>{user?.nombre}</div>
+            <div style={{ fontSize: 12, color: "#5a9aaa" }}>Instructor: {user?.nombreInstructor}</div>
+            <div style={{ fontSize: 11, color: "#3d6878" }}>({user?.instructor})</div>
+            {user?.iglesia_nombre && (
+              <div style={{ fontSize: 11, color: "#00d4c8", marginTop: 2 }}>⛪ {user.iglesia_nombre}</div>
+            )}
+            {user?.supabase_id && (
+              <div style={{ fontSize: 10, color: "#22c55e", marginTop: 2 }}>● Conectado</div>
+            )}
+          </div>
+        </div>
+
+        {/* Progress Card */}
+        <div style={{
+          background: "linear-gradient(135deg, rgba(0,212,200,.07), rgba(233,30,140,.04))",
+          borderRadius: 20, padding: "24px", marginBottom: 28,
+          border: "1px solid rgba(0,212,200,.18)",
+        }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+            <div>
+              <div style={{ fontSize: 12, color: "#5a9aaa", fontWeight: 600, letterSpacing: 1.5 }}>MI PROGRESO</div>
+              <div style={{ fontSize: 34, fontWeight: 800, background: "linear-gradient(135deg, #00d4c8, #e91e8c)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontFamily: "'Playfair Display', serif" }}>
+                {completedCount}<span style={{ fontSize: 18, WebkitTextFillColor: "#3d6878" }}>/20</span>
+              </div>
+            </div>
+            <div style={{ textAlign: "center" }}>
+              <div style={{ position: "relative", width: 78, height: 78 }}>
+                <svg width="78" height="78" viewBox="0 0 78 78" style={{ transform: "rotate(-90deg)" }}>
+                  <circle cx="39" cy="39" r="32" fill="none" stroke="rgba(255,255,255,.07)" strokeWidth="7" />
+                  <circle cx="39" cy="39" r="32" fill="none" stroke="url(#progressGrad)" strokeWidth="7"
+                    strokeDasharray={`${pct * 2.01} 201`}
+                    strokeLinecap="round"
+                    style={{ transition: "stroke-dasharray .8s ease" }}
+                  />
+                  <defs>
+                    <linearGradient id="progressGrad" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="#00d4c8" />
+                      <stop offset="100%" stopColor="#e91e8c" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+                <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 800, background: "linear-gradient(135deg, #00d4c8, #e91e8c)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+                  {pct}%
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style={{ background: "rgba(255,255,255,.06)", borderRadius: 10, height: 8, overflow: "hidden" }}>
+            <div style={{ height: "100%", width: `${pct}%`, background: "linear-gradient(90deg, #00d4c8, #e91e8c)", borderRadius: 10, transition: "width .8s ease" }} />
+          </div>
+          {allDone && (
+            <button onClick={onCertificado} style={{
+              width: "100%", marginTop: 16, padding: "15px",
+              background: "linear-gradient(135deg, #00d4c8, #7c3aed, #e91e8c)",
+              color: "#fff", border: "none", borderRadius: 12,
+              fontSize: 15, fontWeight: 700, cursor: "pointer",
+              fontFamily: "'Source Sans 3', sans-serif",
+              boxShadow: "0 4px 24px rgba(0,212,200,.25), 0 4px 24px rgba(233,30,140,.15)",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+            }}>
+              🎓 VER MI CERTIFICADO DE GRADUACIÓN
+            </button>
+          )}
+        </div>
+
+        {/* Lessons Grid */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 14 }}>
+          {LECCIONES.map((l, idx) => {
+            const done = !!progress[l.id]?.completed;
+            const isNext = !done && idx === completedCount;
+            return (
+              <button
+                key={l.id}
+                onClick={() => onSelectLeccion(l)}
+                style={{
+                  display: "flex", alignItems: "center", gap: 14,
+                  padding: "16px 18px", borderRadius: 16,
+                  background: done ? "rgba(0,212,200,.07)" : isNext ? "rgba(0,212,200,.03)" : "rgba(255,255,255,.02)",
+                  border: `1.5px solid ${done ? "rgba(0,212,200,.28)" : isNext ? "rgba(0,212,200,.18)" : "rgba(255,255,255,.06)"}`,
+                  cursor: "pointer", textAlign: "left", width: "100%",
+                  transition: "all .25s ease",
+                  fontFamily: "'Source Sans 3', sans-serif",
+                  color: "#e8f4f8",
+                  position: "relative", overflow: "hidden",
+                }}
+                onMouseOver={e => { e.currentTarget.style.background = done ? "rgba(0,212,200,.12)" : "rgba(255,255,255,.04)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
+                onMouseOut={e => { e.currentTarget.style.background = done ? "rgba(0,212,200,.07)" : isNext ? "rgba(0,212,200,.03)" : "rgba(255,255,255,.02)"; e.currentTarget.style.transform = "translateY(0)"; }}
+              >
+                {isNext && <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: "linear-gradient(90deg, #00d4c8, #e91e8c, transparent)" }} />}
+                <div style={{
+                  width: 44, height: 44, borderRadius: 12,
+                  background: done ? "linear-gradient(135deg, #00d4c8, #e91e8c)" : "rgba(255,255,255,.06)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: done ? 18 : 14,
+                  color: done ? "#fff" : "#5a9aaa",
+                  fontWeight: 700, flexShrink: 0,
+                }}>
+                  {done ? "✓" : l.id}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 11, color: done ? "#00d4c8" : "#3d6878", fontWeight: 600, letterSpacing: 1 }}>
+                    LECCIÓN {l.id} {done && "• COMPLETADA"}
+                  </div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: done ? "#e8f4f8" : "#8ec8d0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    {l.titulo}
+                  </div>
+                </div>
+                <div style={{ fontSize: 18, opacity: .4, flexShrink: 0 }}>{l.icono}</div>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Footer */}
+        <div style={{ marginTop: 40, textAlign: "center" }}>
+          <button onClick={onReset} style={{
+            background: "none", border: "1px solid rgba(255,255,255,.08)",
+            color: "#3d6878", padding: "10px 24px", borderRadius: 10,
+            cursor: "pointer", fontSize: 12, fontFamily: "'Source Sans 3'",
+            letterSpacing: 1, transition: "all .2s",
+          }}
+            onMouseOver={e => { e.currentTarget.style.borderColor = "#ef4444"; e.currentTarget.style.color = "#ef4444"; }}
+            onMouseOut={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,.08)"; e.currentTarget.style.color = "#3d6878"; }}
+          >
+            REINICIAR CURSO
+          </button>
+        </div>
+      </div>
+      <style>{`@keyframes fadeUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }`}</style>
+    </div>
+  );
+}
+
+// ─── LECCION VIEW ───
+function LeccionView({ leccion, onComplete, onBack, isCompleted }) {
+  const [step, setStep] = useState(0);
+  const [revealed, setRevealed] = useState({});
+  const [allRevealed, setAllRevealed] = useState(false);
+  const totalSteps = leccion.preguntas.length + 2;
+
+  const revealAnswer = (idx) => {
+    const nr = { ...revealed, [idx]: true };
+    setRevealed(nr);
+    if (Object.keys(nr).length === leccion.preguntas.length) setAllRevealed(true);
+  };
+
+  const containerRef = useRef(null);
+  useEffect(() => { containerRef.current?.scrollTo({ top: 0, behavior: "smooth" }); }, [step]);
+
+  return (
+    <div ref={containerRef} style={{ minHeight: "100vh", padding: "24px 16px 80px", overflow: "auto" }}>
+      <div style={{ maxWidth: 640, margin: "0 auto", animation: "fadeUp .4s ease" }}>
+        {/* Back & Progress */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+          <button onClick={onBack} style={{ background: "none", border: "none", color: "#5a9aaa", cursor: "pointer", fontSize: 14, fontFamily: "'Source Sans 3'" }}>← Volver</button>
+          <div style={{ display: "flex", gap: 4 }}>
+            {Array.from({ length: totalSteps }).map((_, i) => (
+              <div key={i} style={{
+                width: i === step ? 24 : 8, height: 8, borderRadius: 4,
+                background: i <= step ? "#00d4c8" : "rgba(255,255,255,.08)",
+                transition: "all .3s ease",
+              }} />
+            ))}
+          </div>
+        </div>
+
+        {/* Lesson Header */}
+        <div style={{ marginBottom: 28 }}>
+          <div style={{ fontSize: 12, color: "#5a9aaa", letterSpacing: 3, fontWeight: 600, marginBottom: 4 }}>LECCIÓN {leccion.id} DE 20</div>
+          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(22px, 5vw, 32px)", fontWeight: 700, margin: 0, background: "linear-gradient(135deg, #00d4c8, #e91e8c)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", lineHeight: 1.2 }}>
+            {leccion.icono} {leccion.titulo}
+          </h2>
+        </div>
+
+        {/* INTRO STEP */}
+        {step === 0 && (
+          <div style={{ animation: "fadeUp .4s ease" }}>
+            <div style={{
+              background: "rgba(0,212,200,.05)", borderRadius: 20, padding: "32px 24px",
+              border: "1px solid rgba(0,212,200,.15)", marginBottom: 24, textAlign: "center",
+            }}>
+              <div style={{ fontSize: 48, marginBottom: 16 }}>{leccion.icono}</div>
+              <p style={{ fontSize: 17, color: "#c4b5a0", lineHeight: 1.8, margin: 0, fontStyle: "italic" }}>{leccion.intro}</p>
+            </div>
+            <p style={{ fontSize: 14, color: "#888", textAlign: "center", marginBottom: 20 }}>
+              Esta lección contiene {leccion.preguntas.length} preguntas con sus versículos bíblicos. Lee cada versículo y descubre las respuestas que Dios tiene para ti.
+            </p>
+            <button onClick={() => setStep(1)} style={{
+              width: "100%", padding: "16px",
+              background: "linear-gradient(135deg, #00d4c8, #7c3aed, #e91e8c)",
+              color: "#fff", border: "none", borderRadius: 14,
+              fontSize: 16, fontWeight: 700, cursor: "pointer",
+              fontFamily: "'Source Sans 3', sans-serif",
+              boxShadow: "0 4px 20px rgba(0,212,200,.2)",
+            }}>
+              COMENZAR ESTUDIO →
+            </button>
+          </div>
+        )}
+
+        {/* QUESTION STEPS */}
+        {step >= 1 && step <= leccion.preguntas.length && (() => {
+          const qi = step - 1;
+          const q = leccion.preguntas[qi];
+          const isRevealed = !!revealed[qi];
+          return (
+            <div key={qi} style={{ animation: "fadeUp .4s ease" }}>
+              <div style={{
+                background: "rgba(255,255,255,.03)", borderRadius: 20, padding: "28px 22px",
+                border: "1px solid rgba(255,255,255,.08)", marginBottom: 20,
+              }}>
+                <div style={{ fontSize: 11, background: "linear-gradient(135deg,#00d4c8,#e91e8c)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontWeight: 700, letterSpacing: 2, marginBottom: 12 }}>
+                  PREGUNTA {qi + 1} DE {leccion.preguntas.length}
+                </div>
+                <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, fontWeight: 600, margin: "0 0 20px", color: "#e8f4f8", lineHeight: 1.4 }}>
+                  {q.pregunta}
+                </h3>
+
+                {/* Verse Reference */}
+                <div style={{
+                  background: "rgba(0,212,200,.06)", borderRadius: 12, padding: "12px 16px",
+                  border: "1px solid rgba(0,212,200,.15)", marginBottom: 16,
+                  display: "flex", alignItems: "center", gap: 10,
+                }}>
+                  <span style={{ fontSize: 20 }}>📖</span>
+                  <div>
+                    <div style={{ fontSize: 11, color: "#3d6878", letterSpacing: 1 }}>BUSCA LA RESPUESTA EN</div>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: "#00d4c8" }}>{q.cita}</div>
+                  </div>
+                </div>
+
+                {/* Reveal Button / Answer */}
+                {!isRevealed ? (
+                  <button onClick={() => revealAnswer(qi)} style={{
+                    width: "100%", padding: "16px",
+                    background: "rgba(0,212,200,.06)", border: "2px dashed rgba(0,212,200,.3)",
+                    borderRadius: 14, color: "#00d4c8", fontSize: 15, fontWeight: 600,
+                    cursor: "pointer", fontFamily: "'Source Sans 3', sans-serif",
+                    transition: "all .2s",
+                  }}
+                    onMouseOver={e => { e.currentTarget.style.background = "rgba(0,212,200,.12)"; e.currentTarget.style.borderColor = "rgba(0,212,200,.5)"; }}
+                    onMouseOut={e => { e.currentTarget.style.background = "rgba(0,212,200,.06)"; e.currentTarget.style.borderColor = "rgba(0,212,200,.3)"; }}
+                  >
+                    👆 TOCA PARA VER LA RESPUESTA
+                  </button>
+                ) : (
+                  <div style={{ animation: "fadeUp .4s ease" }}>
+                    {/* Bible Text */}
+                    <div style={{
+                      background: "linear-gradient(135deg, rgba(0,212,200,.08), rgba(233,30,140,.04))",
+                      borderRadius: 14, padding: "20px", marginBottom: 16,
+                      borderLeft: "4px solid #00d4c8",
+                    }}>
+                      <p style={{ fontSize: 17, color: "#e8f4f8", lineHeight: 1.7, margin: "0 0 8px", fontStyle: "italic", fontFamily: "'Playfair Display', serif" }}>
+                        "{q.texto}"
+                      </p>
+                      <p style={{ fontSize: 13, color: "#00d4c8", fontWeight: 600, margin: 0, textAlign: "right" }}>— {q.cita}</p>
+                    </div>
+                    {/* Explanation */}
+                    <div style={{
+                      background: "rgba(0,212,200,.03)", borderRadius: 14, padding: "18px",
+                      border: "1px solid rgba(0,212,200,.1)",
+                    }}>
+                      <div style={{ fontSize: 11, color: "#5a9aaa", fontWeight: 600, letterSpacing: 1, marginBottom: 8 }}>💡 PARA ENTENDER MEJOR</div>
+                      <p style={{ fontSize: 15, color: "#8ec8d0", lineHeight: 1.7, margin: 0 }}>{q.explicacion}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Navigation */}
+              <div style={{ display: "flex", gap: 12 }}>
+                {step > 1 && (
+                  <button onClick={() => setStep(step - 1)} style={{
+                    flex: 1, padding: "14px", background: "rgba(0,212,200,.04)",
+                    border: "1px solid rgba(0,212,200,.15)", borderRadius: 12,
+                    color: "#5a9aaa", fontSize: 14, fontWeight: 600, cursor: "pointer",
+                    fontFamily: "'Source Sans 3', sans-serif",
+                  }}>
+                    ← Anterior
+                  </button>
+                )}
+                {isRevealed && (
+                  <button onClick={() => setStep(step + 1)} style={{
+                    flex: 2, padding: "14px",
+                    background: "linear-gradient(135deg, #00d4c8, #7c3aed, #e91e8c)",
+                    border: "none", borderRadius: 12, color: "#fff",
+                    fontSize: 14, fontWeight: 700, cursor: "pointer",
+                    fontFamily: "'Source Sans 3', sans-serif",
+                    boxShadow: "0 4px 16px rgba(0,212,200,.2)",
+                  }}>
+                    {step < leccion.preguntas.length ? "Siguiente Pregunta →" : "Ver Resumen →"}
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* SUMMARY STEP */}
+        {step === leccion.preguntas.length + 1 && (
+          <div style={{ animation: "fadeUp .4s ease" }}>
+            <div style={{
+              background: "linear-gradient(135deg, rgba(0,212,200,.07), rgba(233,30,140,.04))",
+              borderRadius: 20, padding: "32px 24px", textAlign: "center",
+              border: "1px solid rgba(0,212,200,.18)", marginBottom: 24,
+            }}>
+              <div style={{ fontSize: 56, marginBottom: 12 }}>🎉</div>
+              <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, fontWeight: 700, background: "linear-gradient(135deg,#00d4c8,#e91e8c)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", margin: "0 0 8px" }}>
+                {isCompleted ? "Lección ya completada" : "¡Lección Estudiada!"}
+              </h3>
+              <p style={{ fontSize: 15, color: "#5a9aaa", margin: "0 0 20px", lineHeight: 1.6 }}>
+                Has estudiado todas las preguntas de la Lección {leccion.id}: <strong style={{ color: "#8ec8d0" }}>{leccion.titulo}</strong>
+              </p>
+
+              {/* Recap */}
+              <div style={{ textAlign: "left", marginBottom: 20 }}>
+                {leccion.preguntas.map((q, i) => (
+                  <div key={i} style={{
+                    padding: "12px 14px", marginBottom: 8,
+                    background: "rgba(0,212,200,.04)", borderRadius: 10,
+                    borderLeft: "3px solid #00d4c8",
+                  }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "#e8f4f8", marginBottom: 2 }}>{q.pregunta}</div>
+                    <div style={{ fontSize: 12, color: "#3d6878" }}>{q.cita}</div>
+                  </div>
+                ))}
+              </div>
+
+              {!isCompleted ? (
+                <button onClick={onComplete} style={{
+                  width: "100%", padding: "16px",
+                  background: "linear-gradient(135deg, #00d4c8, #7c3aed, #e91e8c)",
+                  color: "#fff", border: "none", borderRadius: 14,
+                  fontSize: 16, fontWeight: 700, cursor: "pointer",
+                  fontFamily: "'Source Sans 3', sans-serif",
+                  boxShadow: "0 4px 24px rgba(0,212,200,.3)",
+                }}>
+                  ✓ MARCAR COMO COMPLETADA
+                </button>
+              ) : (
+                <button onClick={onBack} style={{
+                  width: "100%", padding: "16px",
+                  background: "rgba(0,212,200,.08)", color: "#00d4c8",
+                  border: "1px solid rgba(0,212,200,.2)", borderRadius: 14,
+                  fontSize: 16, fontWeight: 600, cursor: "pointer",
+                  fontFamily: "'Source Sans 3', sans-serif",
+                }}>
+                  VOLVER AL PANEL
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+      <style>{`@keyframes fadeUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }`}</style>
+    </div>
+  );
+}
+
+// ─── CERTIFICADO ───
+function CertificadoView({ user, onBack }) {
+  const today = new Date();
+  const dateStr = today.toLocaleDateString("es-CO", { day: "numeric", month: "long", year: "numeric" });
+
+  return (
+    <div style={{ minHeight: "100vh", padding: "24px 16px 60px", display: "flex", flexDirection: "column", alignItems: "center" }}>
+      <button onClick={onBack} style={{ background: "none", border: "none", color: "#5a9aaa", cursor: "pointer", fontSize: 14, fontFamily: "'Source Sans 3'", marginBottom: 20, alignSelf: "flex-start", maxWidth: 640, width: "100%" }}>
+        ← Volver al panel
+      </button>
+
+      <div style={{
+        maxWidth: 640, width: "100%", animation: "fadeUp .6s ease",
+        background: "linear-gradient(135deg, #fefdf5 0%, #faf4e0 50%, #f5ecd0 100%)",
+        borderRadius: 20, padding: "clamp(24px, 5vw, 48px)", position: "relative",
+        border: "3px solid #d4a843", color: "#2d1b0e",
+        boxShadow: "0 20px 60px rgba(0,0,0,.4), inset 0 0 0 1px rgba(212,168,67,.3)",
+        overflow: "hidden",
+      }}>
+        {/* Decorative corners */}
+        {["top-left", "top-right", "bottom-left", "bottom-right"].map(pos => (
+          <div key={pos} style={{
+            position: "absolute",
+            [pos.includes("top") ? "top" : "bottom"]: 12,
+            [pos.includes("left") ? "left" : "right"]: 12,
+            width: 40, height: 40,
+            borderTop: pos.includes("top") ? "3px solid #d4a843" : "none",
+            borderBottom: pos.includes("bottom") ? "3px solid #d4a843" : "none",
+            borderLeft: pos.includes("left") ? "3px solid #d4a843" : "none",
+            borderRight: pos.includes("right") ? "3px solid #d4a843" : "none",
+          }} />
+        ))}
+
+        <div style={{ textAlign: "center", position: "relative", zIndex: 1 }}>
+          <div style={{ fontSize: 12, letterSpacing: 6, color: "#8b6f3a", textTransform: "uppercase", fontWeight: 600, marginBottom: 4 }}>
+            Iglesia Adventista del Séptimo Día
+          </div>
+          <div style={{ width: 80, height: 2, background: "linear-gradient(90deg, transparent, #d4a843, transparent)", margin: "8px auto 20px" }} />
+
+          <div style={{ fontSize: 14, letterSpacing: 4, color: "#a0864a", marginBottom: 8, fontWeight: 500 }}>CERTIFICADO DE</div>
+          <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(28px, 6vw, 44px)", fontWeight: 800, margin: "0 0 4px", color: "#2d1b0e", lineHeight: 1.1 }}>
+            GRADUACIÓN
+          </h1>
+          <p style={{ fontSize: 15, color: "#8b6f3a", fontStyle: "italic", margin: "0 0 28px", fontFamily: "'Playfair Display', serif" }}>
+            Curso Bíblico "La Fe de Jesús"
+          </p>
+
+          <p style={{ fontSize: 14, color: "#5a4a32", margin: "0 0 8px" }}>Se otorga el presente certificado a:</p>
+          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(24px, 5vw, 36px)", fontWeight: 700, margin: "0 0 4px", color: "#2d1b0e", borderBottom: "2px solid #d4a843", display: "inline-block", paddingBottom: 4 }}>
+            {user?.nombre}
+          </h2>
+          <p style={{ fontSize: 14, color: "#5a4a32", margin: "16px 0 0", lineHeight: 1.7, maxWidth: 420, marginLeft: "auto", marginRight: "auto" }}>
+            Por haber completado satisfactoriamente las <strong>20 lecciones</strong> del curso bíblico "La Fe de Jesús", demostrando dedicación en el estudio de las Sagradas Escrituras.
+          </p>
+
+          <div style={{ display: "flex", justifyContent: "center", gap: "clamp(20px, 5vw, 48px)", margin: "32px 0 24px", flexWrap: "wrap" }}>
+            <div style={{ textAlign: "center" }}>
+              <div style={{ width: 120, borderBottom: "1.5px solid #a0864a", marginBottom: 6, paddingBottom: 4, fontSize: 13, color: "#2d1b0e", fontWeight: 500 }}>
+                {user?.nombreInstructor}
+              </div>
+              <div style={{ fontSize: 11, color: "#8b6f3a", letterSpacing: 1 }}>{user?.instructor}</div>
+            </div>
+            <div style={{ textAlign: "center" }}>
+              <div style={{ width: 120, borderBottom: "1.5px solid #a0864a", marginBottom: 6, paddingBottom: 4, fontSize: 13, color: "#2d1b0e", fontWeight: 500 }}>
+                {dateStr}
+              </div>
+              <div style={{ fontSize: 11, color: "#8b6f3a", letterSpacing: 1 }}>FECHA</div>
+            </div>
+          </div>
+
+          <div style={{ fontSize: 12, color: "#a0864a", letterSpacing: 2, marginTop: 8 }}>
+            ✦ {user?.ciudad}, {user?.departamento} ✦
+          </div>
+        </div>
+      </div>
+
+      <p style={{ color: "#888", fontSize: 13, marginTop: 20, textAlign: "center" }}>
+        "Toda la Escritura es inspirada por Dios" — 2 Timoteo 3:16
+      </p>
+      <style>{`@keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }`}</style>
+    </div>
+  );
+}
+
+// ─── ADMIN PANEL ───
+function AdminPanel({ onBack }) {
+  const [admin, setAdmin] = useState(null);
+  const [loginForm, setLoginForm] = useState({ email: "", password: "" });
+  const [loginError, setLoginError] = useState("");
+  const [logging, setLogging] = useState(false);
+  const [tab, setTab] = useState("dashboard");
+  const [showChangePass, setShowChangePass] = useState(false);
+  const [forceChangePass, setForceChangePass] = useState(false);
+
+  // Check saved session
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("fdj_admin");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setAdmin(parsed);
+        if (parsed.password_temporal) setForceChangePass(true);
+      }
+    } catch {}
+  }, []);
+
+  const handleLogin = async () => {
+    setLogging(true);
+    setLoginError("");
+    try {
+      const result = await supaFetch(
+        `pastores?email=eq.${encodeURIComponent(loginForm.email)}&select=id,nombre,email,distrito_id,rol`
+      );
+      if (!result || result.length === 0) {
+        setLoginError("Email no encontrado");
+        setLogging(false);
+        return;
+      }
+      // Try normal password first, then temp_ prefixed
+      let passCheck = await supaFetch(
+        `pastores?email=eq.${encodeURIComponent(loginForm.email)}&password_hash=eq.${encodeURIComponent(loginForm.password)}&select=id,nombre,email,distrito_id,rol,password_hash`
+      );
+      if (!passCheck || passCheck.length === 0) {
+        // Try with temp_ prefix (temporary passwords)
+        passCheck = await supaFetch(
+          `pastores?email=eq.${encodeURIComponent(loginForm.email)}&password_hash=eq.${encodeURIComponent("temp_" + loginForm.password)}&select=id,nombre,email,distrito_id,rol,password_hash`
+        );
+      }
+      if (!passCheck || passCheck.length === 0) {
+        setLoginError("Contraseña incorrecta");
+        setLogging(false);
+        return;
+      }
+      const adminData = passCheck[0];
+      // Check if password is temporary (starts with "temp_" or is short/generic)
+      const isTempPass = adminData.password_hash.startsWith("temp_");
+      delete adminData.password_hash;
+      adminData.password_temporal = isTempPass;
+      setAdmin(adminData);
+      localStorage.setItem("fdj_admin", JSON.stringify(adminData));
+      if (isTempPass) setForceChangePass(true);
+    } catch (err) {
+      setLoginError("Error de conexión. Intenta de nuevo.");
+    }
+    setLogging(false);
+  };
+
+  const handleLogout = () => {
+    setAdmin(null);
+    localStorage.removeItem("fdj_admin");
+  };
+
+  const isSuperadmin = admin?.rol === "superadmin";
+
+  const inputStyle = (hasError) => ({
+    width: "100%", padding: "14px 16px", background: "rgba(0,212,200,.04)",
+    border: `1.5px solid ${hasError ? "#ef4444" : "rgba(0,212,200,.15)"}`,
+    borderRadius: 12, color: "#e8f4f8", fontSize: 15,
+    fontFamily: "'Source Sans 3', sans-serif", outline: "none",
+    transition: "border .3s", boxSizing: "border-box",
+  });
+
+  // ─── LOGIN SCREEN ───
+  if (!admin) {
+    return (
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px 16px", position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", top: "15%", left: "8%", width: 250, height: 250, borderRadius: "50%", background: "radial-gradient(circle, rgba(0,212,200,.1) 0%, transparent 70%)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", bottom: "15%", right: "8%", width: 200, height: 200, borderRadius: "50%", background: "radial-gradient(circle, rgba(233,30,140,.08) 0%, transparent 70%)", pointerEvents: "none" }} />
+        <div style={{ maxWidth: 420, width: "100%", animation: "fadeUp .5s ease", position: "relative", zIndex: 1 }}>
+          <button onClick={onBack} style={{ background: "none", border: "none", color: "#5a9aaa", cursor: "pointer", fontSize: 14, marginBottom: 28, fontFamily: "'Source Sans 3'", transition: "color .2s" }}
+            onMouseOver={e => e.target.style.color = "#00d4c8"} onMouseOut={e => e.target.style.color = "#5a9aaa"}
+          >
+            ← Volver al inicio
+          </button>
+          <div style={{ textAlign: "center", marginBottom: 32 }}>
+            <div style={{ display: "inline-block", padding: 4, borderRadius: "50%", background: "linear-gradient(135deg, rgba(0,212,200,.25), rgba(233,30,140,.25))", marginBottom: 16 }}>
+              <img src="logo.png.jpeg" alt="Logo" style={{ width: 80, height: 80, borderRadius: "50%", display: "block" }} />
+            </div>
+            <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 700, background: "linear-gradient(135deg, #00d4c8, #e91e8c)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", margin: "0 0 6px" }}>Panel Administrativo</h2>
+            <p style={{ color: "#3d6878", fontSize: 14 }}>Ingresa tus credenciales</p>
+          </div>
+          <div style={{ background: "rgba(0,212,200,.03)", borderRadius: 20, padding: "28px 24px", border: "1px solid rgba(0,212,200,.12)", display: "flex", flexDirection: "column", gap: 16 }}>
+            <div>
+              <label style={{ fontSize: 13, fontWeight: 600, color: "#5a9aaa", marginBottom: 6, display: "block" }}>Email</label>
+              <input style={inputStyle(false)} placeholder="tu@email.com" type="email" value={loginForm.email} onChange={e => setLoginForm({ ...loginForm, email: e.target.value })} onFocus={e => e.target.style.borderColor = "#00d4c8"} onBlur={e => e.target.style.borderColor = "rgba(0,212,200,.15)"} />
+            </div>
+            <div>
+              <label style={{ fontSize: 13, fontWeight: 600, color: "#5a9aaa", marginBottom: 6, display: "block" }}>Contraseña</label>
+              <input style={inputStyle(false)} placeholder="••••••••" type="password" value={loginForm.password} onChange={e => setLoginForm({ ...loginForm, password: e.target.value })} onFocus={e => e.target.style.borderColor = "#00d4c8"} onBlur={e => e.target.style.borderColor = "rgba(0,212,200,.15)"} onKeyDown={e => e.key === "Enter" && handleLogin()} />
+            </div>
+            {loginError && <p style={{ color: "#ef4444", fontSize: 13, textAlign: "center", margin: 0 }}>{loginError}</p>}
+            <button onClick={handleLogin} disabled={logging} style={{
+              width: "100%", padding: "15px", background: logging ? "rgba(0,212,200,.4)" : "linear-gradient(135deg, #00d4c8, #7c3aed, #e91e8c)",
+              color: "#fff", border: "none", borderRadius: 12, fontSize: 16, fontWeight: 700,
+              cursor: logging ? "not-allowed" : "pointer", fontFamily: "'Source Sans 3'",
+              boxShadow: logging ? "none" : "0 4px 24px rgba(0,212,200,.25)",
+            }}>
+              {logging ? "VERIFICANDO..." : "INGRESAR"}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── FORCE CHANGE PASSWORD ───
+  if (forceChangePass) {
+    return <ChangePasswordScreen admin={admin} onDone={() => {
+      const updated = { ...admin, password_temporal: false };
+      setAdmin(updated);
+      localStorage.setItem("fdj_admin", JSON.stringify(updated));
+      setForceChangePass(false);
+    }} isForced={true} />;
+  }
+
+  // ─── CHANGE PASSWORD (voluntary) ───
+  if (showChangePass) {
+    return <ChangePasswordScreen admin={admin} onDone={() => setShowChangePass(false)} onCancel={() => setShowChangePass(false)} isForced={false} />;
+  }
+
+  // ─── ADMIN DASHBOARD ───
+  return (
+    <div style={{ minHeight: "100vh", padding: "24px 16px 60px" }}>
+      <div style={{ maxWidth: 960, margin: "0 auto", animation: "fadeUp .5s ease" }}>
+        {/* Header */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 28, flexWrap: "wrap", gap: 12, padding: "18px 20px", background: "rgba(0,212,200,.04)", borderRadius: 18, border: "1px solid rgba(0,212,200,.12)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <div style={{ padding: 3, borderRadius: "50%", background: "linear-gradient(135deg, rgba(0,212,200,.3), rgba(233,30,140,.3))", flexShrink: 0 }}>
+              <img src="logo.png.jpeg" alt="Logo" style={{ width: 52, height: 52, borderRadius: "50%", display: "block" }} />
+            </div>
+            <div>
+              <div style={{ fontSize: 11, letterSpacing: 4, color: "#3d6878", textTransform: "uppercase", marginBottom: 2 }}>Panel Administrativo</div>
+              <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(18px, 3.5vw, 26px)", fontWeight: 700, margin: 0, background: "linear-gradient(135deg, #00d4c8, #e91e8c)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+                {isSuperadmin ? "Super Administrador" : "Pastor de Distrito"}
+              </h1>
+            </div>
+          </div>
+          <div style={{ textAlign: "right" }}>
+            <div style={{ fontSize: 14, color: "#e8f4f8", fontWeight: 600 }}>{admin.nombre}</div>
+            <div style={{ fontSize: 12, color: "#3d6878" }}>{admin.email}</div>
+            <div style={{ fontSize: 11, fontWeight: 700, background: isSuperadmin ? "linear-gradient(135deg, #00d4c8, #e91e8c)" : "linear-gradient(135deg, #22c55e, #16a34a)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+              {isSuperadmin ? "● SUPERADMIN" : "● PASTOR"}
+            </div>
+            <div style={{ display: "flex", gap: 6, justifyContent: "flex-end", marginTop: 6 }}>
+              <button onClick={() => setShowChangePass(true)} style={{ background: "none", border: "1px solid rgba(0,212,200,.2)", color: "#5a9aaa", padding: "4px 10px", borderRadius: 8, fontSize: 11, cursor: "pointer", fontFamily: "'Source Sans 3'", transition: "all .2s" }}
+                onMouseOver={e => { e.target.style.borderColor = "rgba(0,212,200,.5)"; e.target.style.color = "#00d4c8"; }}
+                onMouseOut={e => { e.target.style.borderColor = "rgba(0,212,200,.2)"; e.target.style.color = "#5a9aaa"; }}
+              >
+                🔑 Contraseña
+              </button>
+              <button onClick={handleLogout} style={{ background: "none", border: "1px solid rgba(239,68,68,.3)", color: "#ef4444", padding: "4px 12px", borderRadius: 8, fontSize: 11, cursor: "pointer", fontFamily: "'Source Sans 3'" }}>
+                Salir
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div style={{ display: "flex", gap: 6, marginBottom: 24, flexWrap: "wrap" }}>
+          {[
+            { id: "dashboard", label: "📊 Dashboard", show: true },
+            { id: "distritos", label: "🏛️ Distritos", show: isSuperadmin },
+            { id: "iglesias", label: "⛪ Iglesias", show: true },
+            { id: "pastores", label: "👤 Pastores", show: isSuperadmin },
+            { id: "estudiantes", label: "📋 Estudiantes", show: true },
+          ].filter(t => t.show).map(t => (
+            <button key={t.id} onClick={() => setTab(t.id)} style={{
+              padding: "10px 18px", borderRadius: 10, fontSize: 13, fontWeight: 600,
+              cursor: "pointer", fontFamily: "'Source Sans 3'", transition: "all .25s",
+              background: tab === t.id ? "rgba(0,212,200,.12)" : "rgba(255,255,255,.02)",
+              border: `1px solid ${tab === t.id ? "rgba(0,212,200,.35)" : "rgba(255,255,255,.06)"}`,
+              color: tab === t.id ? "#00d4c8" : "#3d6878",
+            }}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Tab Content */}
+        {tab === "dashboard" && <AdminDashboardTab admin={admin} isSuperadmin={isSuperadmin} />}
+        {tab === "distritos" && isSuperadmin && <AdminDistritosTab />}
+        {tab === "iglesias" && <AdminIglesiasTab admin={admin} isSuperadmin={isSuperadmin} />}
+        {tab === "pastores" && isSuperadmin && <AdminPastoresTab />}
+        {tab === "estudiantes" && <AdminEstudiantesTab admin={admin} isSuperadmin={isSuperadmin} />}
+      </div>
+    </div>
+  );
+}
+
+// ─── CHANGE PASSWORD SCREEN ───
+function ChangePasswordScreen({ admin, onDone, onCancel, isForced }) {
+  const [form, setForm] = useState({ current: "", newPass: "", confirm: "" });
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const inputStyle = {
+    width: "100%", padding: "14px 16px", background: "rgba(0,212,200,.04)",
+    border: "1.5px solid rgba(0,212,200,.15)", borderRadius: 12, color: "#e8f4f8",
+    fontSize: 15, fontFamily: "'Source Sans 3'", outline: "none", boxSizing: "border-box",
+  };
+
+  const handleChange = async () => {
+    setError("");
+    if (!isForced && !form.current.trim()) { setError("Ingresa tu contraseña actual"); return; }
+    if (form.newPass.length < 6) { setError("La nueva contraseña debe tener al menos 6 caracteres"); return; }
+    if (form.newPass !== form.confirm) { setError("Las contraseñas no coinciden"); return; }
+
+    setSaving(true);
+    try {
+      // Verify current password (skip if forced)
+      if (!isForced) {
+        const check = await supaFetch(`pastores?id=eq.${admin.id}&password_hash=eq.${encodeURIComponent(form.current)}&select=id`);
+        if (!check || check.length === 0) { setError("Contraseña actual incorrecta"); setSaving(false); return; }
+      }
+      // Update password
+      await supaFetch(`pastores?id=eq.${admin.id}`, {
+        method: "PATCH",
+        body: { password_hash: form.newPass },
+      });
+      setSuccess(true);
+      setTimeout(() => onDone(), 1500);
+    } catch (err) {
+      setError("Error al cambiar la contraseña. Intenta de nuevo.");
+    }
+    setSaving(false);
+  };
+
+  return (
+    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px 16px" }}>
+      <div style={{ maxWidth: 420, width: "100%", animation: "fadeUp .5s ease" }}>
+        {!isForced && onCancel && (
+          <button onClick={onCancel} style={{ background: "none", border: "none", color: "#5a9aaa", cursor: "pointer", fontSize: 14, marginBottom: 24, fontFamily: "'Source Sans 3'" }}>
+            ← Volver al panel
+          </button>
+        )}
+        <div style={{ textAlign: "center", marginBottom: 28 }}>
+          <div style={{ fontSize: 36, marginBottom: 12 }}>{isForced ? "⚠️" : "🔑"}</div>
+          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, fontWeight: 700, background: "linear-gradient(135deg,#00d4c8,#e91e8c)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", margin: "0 0 8px" }}>
+            {isForced ? "Cambio de Contraseña Requerido" : "Cambiar Contraseña"}
+          </h2>
+          {isForced && (
+            <p style={{ color: "#5a9aaa", fontSize: 14, lineHeight: 1.6 }}>
+              Tu contraseña es temporal. Por seguridad, debes crear una contraseña nueva antes de continuar.
+            </p>
+          )}
+        </div>
+
+        <div style={{ background: "rgba(0,212,200,.03)", borderRadius: 20, padding: "28px 24px", border: "1px solid rgba(0,212,200,.12)", display: "flex", flexDirection: "column", gap: 16 }}>
+          {!isForced && (
+            <div>
+              <label style={{ fontSize: 13, fontWeight: 600, color: "#5a9aaa", marginBottom: 6, display: "block" }}>Contraseña actual</label>
+              <input style={inputStyle} type="password" placeholder="Tu contraseña actual" value={form.current} onChange={e => setForm({ ...form, current: e.target.value })} onFocus={e => e.target.style.borderColor = "#00d4c8"} onBlur={e => e.target.style.borderColor = "rgba(0,212,200,.15)"} />
+            </div>
+          )}
+          <div>
+            <label style={{ fontSize: 13, fontWeight: 600, color: "#5a9aaa", marginBottom: 6, display: "block" }}>Nueva contraseña</label>
+            <input style={inputStyle} type="password" placeholder="Mínimo 6 caracteres" value={form.newPass} onChange={e => setForm({ ...form, newPass: e.target.value })} onFocus={e => e.target.style.borderColor = "#00d4c8"} onBlur={e => e.target.style.borderColor = "rgba(0,212,200,.15)"} />
+          </div>
+          <div>
+            <label style={{ fontSize: 13, fontWeight: 600, color: "#5a9aaa", marginBottom: 6, display: "block" }}>Confirmar nueva contraseña</label>
+            <input style={inputStyle} type="password" placeholder="Repite la contraseña" value={form.confirm} onChange={e => setForm({ ...form, confirm: e.target.value })} onKeyDown={e => e.key === "Enter" && handleChange()} onFocus={e => e.target.style.borderColor = "#00d4c8"} onBlur={e => e.target.style.borderColor = "rgba(0,212,200,.15)"} />
+          </div>
+
+          {error && <p style={{ color: "#ef4444", fontSize: 13, textAlign: "center", margin: 0 }}>{error}</p>}
+          {success && <p style={{ color: "#22c55e", fontSize: 13, textAlign: "center", margin: 0 }}>✓ Contraseña actualizada correctamente</p>}
+
+          <button onClick={handleChange} disabled={saving || success} style={{
+            width: "100%", padding: "15px",
+            background: saving ? "rgba(0,212,200,.4)" : success ? "rgba(34,197,94,.8)" : "linear-gradient(135deg, #00d4c8, #7c3aed, #e91e8c)",
+            color: "#fff", border: "none", borderRadius: 12,
+            fontSize: 16, fontWeight: 700, cursor: saving ? "not-allowed" : "pointer", fontFamily: "'Source Sans 3'",
+            boxShadow: success ? "none" : "0 4px 20px rgba(0,212,200,.2)",
+          }}>
+            {saving ? "GUARDANDO..." : success ? "✓ LISTO" : "CAMBIAR CONTRASEÑA"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── CHART HELPERS ───
+function StatCard({ icon, value, label, color1, color2 }) {
+  return (
+    <div style={{ background: "rgba(0,212,200,.03)", borderRadius: 16, padding: "22px 20px", border: "1px solid rgba(0,212,200,.1)", textAlign: "center", flex: "1 1 160px" }}>
+      <div style={{ fontSize: 28, marginBottom: 8 }}>{icon}</div>
+      <div style={{ fontSize: 34, fontWeight: 800, background: `linear-gradient(135deg, ${color1}, ${color2})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontFamily: "'Playfair Display', serif" }}>{value}</div>
+      <div style={{ fontSize: 12, color: "#3d6878", marginTop: 4, letterSpacing: .5 }}>{label}</div>
+    </div>
+  );
+}
+
+function HBar({ label, value, maxVal, suffix = "%", rank }) {
+  const w = maxVal > 0 ? Math.round((value / maxVal) * 100) : 0;
+  const colors = ["linear-gradient(90deg,#00d4c8,#e91e8c)", "linear-gradient(90deg,#00d4c8,#7c3aed)", "linear-gradient(90deg,#7c3aed,#e91e8c)", "linear-gradient(90deg,#0ea5e9,#00d4c8)"];
+  const grad = colors[(rank || 0) % colors.length];
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
+        <span style={{ fontSize: 13, color: "#8ec8d0", fontWeight: 500, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", paddingRight: 8 }}>
+          {rank !== undefined && <span style={{ fontSize: 11, color: "#3d6878", marginRight: 6 }}>#{rank + 1}</span>}
+          {label}
+        </span>
+        <span style={{ fontSize: 13, fontWeight: 700, background: grad, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", flexShrink: 0 }}>{value}{suffix}</span>
+      </div>
+      <div style={{ background: "rgba(255,255,255,.06)", borderRadius: 6, height: 9, overflow: "hidden" }}>
+        <div style={{ height: "100%", width: `${w}%`, background: grad, borderRadius: 6, transition: "width 1s ease" }} />
+      </div>
+    </div>
+  );
+}
+
+function ChartSection({ title, children, icon }) {
+  return (
+    <div style={{ background: "rgba(0,212,200,.03)", borderRadius: 18, padding: "20px 22px", border: "1px solid rgba(0,212,200,.1)", marginBottom: 20 }}>
+      <div style={{ fontSize: 14, fontWeight: 700, color: "#5a9aaa", marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
+        <span>{icon}</span> {title}
+        <div style={{ flex: 1, height: 1, background: "linear-gradient(90deg, rgba(0,212,200,.3), transparent)", marginLeft: 8 }} />
+      </div>
+      {children}
+    </div>
+  );
+}
+
+// ─── ADMIN: DASHBOARD TAB ───
+function AdminDashboardTab({ admin, isSuperadmin }) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const [estRaw, progRaw, iglesiaRaw, distritoRaw] = await Promise.all([
+          supaFetch("estudiantes?select=id,nombre,iglesia_id,iglesias(nombre,distrito_id,distritos(nombre))&order=nombre").catch(() => []),
+          supaFetch("progreso?select=estudiante_id,leccion_id").catch(() => []),
+          supaFetch("iglesias?select=id,nombre,distrito_id,distritos(nombre)&order=nombre").catch(() => []),
+          isSuperadmin ? supaFetch("distritos?select=id,nombre&order=nombre").catch(() => []) : Promise.resolve([]),
+        ]);
+
+        const prog = progRaw || [];
+        const myEst = isSuperadmin
+          ? (estRaw || [])
+          : (estRaw || []).filter(e => e.iglesias?.distrito_id === admin.distrito_id);
+        const myIgl = isSuperadmin
+          ? (iglesiaRaw || [])
+          : (iglesiaRaw || []).filter(i => i.distrito_id === admin.distrito_id);
+
+        // Top students by % progress
+        const topStudents = myEst.map(e => ({
+          nombre: e.nombre.split(" ").slice(0, 2).join(" "),
+          completed: prog.filter(p => p.estudiante_id === e.id).length,
+          pct: Math.round(prog.filter(p => p.estudiante_id === e.id).length / 20 * 100),
+          iglesia: e.iglesias?.nombre || "—",
+        })).sort((a, b) => b.pct - a.pct).slice(0, 8);
+
+        // Lessons completion count (how many students completed each lesson)
+        const lessonCounts = Array.from({ length: 20 }, (_, i) => ({
+          leccion: i + 1,
+          count: prog.filter(p => p.leccion_id === i + 1).length,
+        }));
+
+        // Church stats
+        const churchStats = myIgl.map(ig => {
+          const igEst = myEst.filter(e => e.iglesia_id === ig.id);
+          const total = igEst.reduce((s, e) => s + prog.filter(p => p.estudiante_id === e.id).length, 0);
+          const avgPct = igEst.length > 0 ? Math.round(total / (igEst.length * 20) * 100) : 0;
+          return { nombre: ig.nombre, estudiantes: igEst.length, avgPct, total };
+        }).sort((a, b) => b.avgPct - a.avgPct);
+
+        // District stats (superadmin only)
+        const districtStats = isSuperadmin ? (distritoRaw || []).map(dist => {
+          const distEst = (estRaw || []).filter(e => e.iglesias?.distrito_id === dist.id);
+          const total = distEst.reduce((s, e) => s + prog.filter(p => p.estudiante_id === e.id).length, 0);
+          const avgPct = distEst.length > 0 ? Math.round(total / (distEst.length * 20) * 100) : 0;
+          return { nombre: dist.nombre, estudiantes: distEst.length, avgPct };
+        }).sort((a, b) => b.avgPct - a.avgPct) : [];
+
+        const maxLesson = Math.max(...lessonCounts.map(l => l.count), 1);
+
+        setData({
+          totalEst: myEst.length,
+          totalProg: prog.length,
+          totalIgl: myIgl.length,
+          totalDist: (distritoRaw || []).length,
+          topStudents,
+          lessonCounts,
+          maxLesson,
+          churchStats,
+          districtStats,
+          graduados: myEst.filter(e => prog.filter(p => p.estudiante_id === e.id).length === 20).length,
+        });
+      } catch {}
+      setLoading(false);
+    })();
+  }, []);
+
+  if (loading) return (
+    <div style={{ textAlign: "center", padding: 60 }}>
+      <div style={{ width: 40, height: 40, borderRadius: "50%", border: "3px solid rgba(0,212,200,.2)", borderTopColor: "#00d4c8", margin: "0 auto 12px", animation: "pulse 1s linear infinite" }} />
+      <p style={{ color: "#3d6878", fontSize: 14 }}>Cargando estadísticas...</p>
+    </div>
+  );
+
+  const maxStudent = Math.max(...(data.topStudents.map(s => s.pct)), 1);
+  const maxChurch = Math.max(...(data.churchStats.map(c => c.avgPct)), 1);
+  const maxDistrict = Math.max(...(data.districtStats.map(d => d.avgPct)), 1);
+
+  return (
+    <div>
+      {/* Summary cards */}
+      <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 24 }}>
+        <StatCard icon="👥" value={data.totalEst} label="Estudiantes" color1="#00d4c8" color2="#0ea5e9" />
+        <StatCard icon="🎓" value={data.graduados} label="Graduados" color1="#e91e8c" color2="#7c3aed" />
+        <StatCard icon="📖" value={data.totalProg} label="Lecciones Completadas" color1="#7c3aed" color2="#00d4c8" />
+        <StatCard icon="⛪" value={data.totalIgl} label="Iglesias" color1="#00d4c8" color2="#22c55e" />
+        {isSuperadmin && <StatCard icon="🏛️" value={data.totalDist} label="Distritos" color1="#e91e8c" color2="#7c3aed" />}
+      </div>
+
+      {/* Top Students */}
+      {data.topStudents.length > 0 && (
+        <ChartSection title="Mejores Estudiantes por Progreso" icon="🏆">
+          {data.topStudents.map((s, i) => (
+            <div key={i}>
+              <HBar label={`${s.nombre} — ${s.iglesia}`} value={s.pct} maxVal={maxStudent} suffix="%" rank={i} />
+            </div>
+          ))}
+          {data.topStudents.length === 0 && <p style={{ color: "#3d6878", textAlign: "center", fontSize: 14 }}>No hay datos de progreso aún</p>}
+        </ChartSection>
+      )}
+
+      {/* Lessons completion */}
+      <ChartSection title="Lecciones Completadas por Estudiantes" icon="📚">
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 10 }}>
+          {data.lessonCounts.map((l, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ fontSize: 11, color: "#3d6878", width: 22, textAlign: "right", flexShrink: 0 }}>L{l.leccion}</div>
+              <div style={{ flex: 1, background: "rgba(255,255,255,.06)", borderRadius: 4, height: 7, overflow: "hidden" }}>
+                <div style={{ height: "100%", width: `${data.maxLesson > 0 ? Math.round(l.count / data.maxLesson * 100) : 0}%`, background: `linear-gradient(90deg, #00d4c8, #e91e8c)`, borderRadius: 4, transition: "width 1s ease" }} />
+              </div>
+              <div style={{ fontSize: 12, color: "#00d4c8", fontWeight: 700, width: 22, flexShrink: 0 }}>{l.count}</div>
+            </div>
+          ))}
+        </div>
+        <p style={{ fontSize: 11, color: "#3d6878", textAlign: "right", marginTop: 10 }}>Número de estudiantes que completaron cada lección</p>
+      </ChartSection>
+
+      {/* Church ranking */}
+      {data.churchStats.length > 0 && (
+        <ChartSection title="Ranking de Iglesias por Promedio de Progreso" icon="⛪">
+          {data.churchStats.map((c, i) => (
+            <div key={i}>
+              <HBar label={`${c.nombre} (${c.estudiantes} est.)`} value={c.avgPct} maxVal={maxChurch} suffix="%" rank={i} />
+            </div>
+          ))}
+        </ChartSection>
+      )}
+
+      {/* District ranking (superadmin only) */}
+      {isSuperadmin && data.districtStats.length > 0 && (
+        <ChartSection title="Ranking de Distritos por Promedio de Progreso" icon="🏛️">
+          {data.districtStats.map((d, i) => (
+            <div key={i}>
+              <HBar label={`${d.nombre} (${d.estudiantes} est.)`} value={d.avgPct} maxVal={maxDistrict} suffix="%" rank={i} />
+            </div>
+          ))}
+        </ChartSection>
+      )}
+
+      {data.totalEst === 0 && (
+        <div style={{ textAlign: "center", padding: "40px 20px", color: "#3d6878" }}>
+          <div style={{ fontSize: 40, marginBottom: 12 }}>📊</div>
+          <p>No hay datos suficientes para mostrar gráficas todavía.</p>
+          <p style={{ fontSize: 13, marginTop: 8 }}>Los gráficos aparecerán cuando haya estudiantes registrados.</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── ADMIN: DISTRITOS TAB ───
+function AdminDistritosTab() {
+  const [distritos, setDistritos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [newName, setNewName] = useState("");
+  const [adding, setAdding] = useState(false);
+
+  const load = async () => {
+    try {
+      const data = await supaFetch("distritos?select=id,nombre&order=nombre");
+      setDistritos(data || []);
+    } catch {}
+    setLoading(false);
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const addDistrito = async () => {
+    if (!newName.trim()) return;
+    setAdding(true);
+    try {
+      await supaFetch("distritos", { method: "POST", body: { nombre: newName.trim() } });
+      setNewName("");
+      await load();
+    } catch (err) { alert("Error al crear distrito"); }
+    setAdding(false);
+  };
+
+  const deleteDistrito = async (id, nombre) => {
+    if (!confirm(`¿Eliminar el distrito "${nombre}"? Esto también eliminará sus iglesias.`)) return;
+    try {
+      await supaFetch(`distritos?id=eq.${id}`, { method: "DELETE" });
+      await load();
+    } catch (err) { alert("Error al eliminar. Puede tener iglesias o pastores vinculados."); }
+  };
+
+  if (loading) return <div style={{ color: "#3d6878", textAlign: "center", padding: 40 }}>Cargando...</div>;
+
+  const inputStyle = { width: "100%", padding: "12px 14px", background: "rgba(0,212,200,.04)", border: "1.5px solid rgba(0,212,200,.15)", borderRadius: 10, color: "#e8f4f8", fontSize: 14, fontFamily: "'Source Sans 3'", outline: "none", boxSizing: "border-box" };
+
+  return (
+    <div>
+      {/* Add new */}
+      <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
+        <input style={{ ...inputStyle, flex: 1 }} placeholder="Nombre del nuevo distrito..." value={newName} onChange={e => setNewName(e.target.value)} onKeyDown={e => e.key === "Enter" && addDistrito()} onFocus={e => e.target.style.borderColor = "#00d4c8"} onBlur={e => e.target.style.borderColor = "rgba(0,212,200,.15)"} />
+        <button onClick={addDistrito} disabled={adding} style={{
+          padding: "12px 24px", background: "linear-gradient(135deg, #00d4c8, #e91e8c)",
+          color: "#fff", border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700,
+          cursor: "pointer", fontFamily: "'Source Sans 3'", whiteSpace: "nowrap",
+        }}>
+          {adding ? "..." : "+ Agregar"}
+        </button>
+      </div>
+
+      {/* List */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {distritos.map(d => (
+          <div key={d.id} style={{
+            display: "flex", justifyContent: "space-between", alignItems: "center",
+            padding: "14px 18px", background: "rgba(0,212,200,.03)",
+            borderRadius: 12, border: "1px solid rgba(0,212,200,.1)",
+          }}>
+            <span style={{ fontSize: 15, color: "#e8f4f8", fontWeight: 500 }}>🏛️ {d.nombre}</span>
+            <button onClick={() => deleteDistrito(d.id, d.nombre)} style={{
+              background: "none", border: "1px solid rgba(239,68,68,.3)",
+              color: "#ef4444", padding: "4px 12px", borderRadius: 8,
+              fontSize: 11, cursor: "pointer", fontFamily: "'Source Sans 3'",
+            }}>
+              Eliminar
+            </button>
+          </div>
+        ))}
+        {distritos.length === 0 && <p style={{ color: "#3d6878", textAlign: "center", padding: 20 }}>No hay distritos registrados</p>}
+      </div>
+      <div style={{ marginTop: 16, fontSize: 13, color: "#3d6878", textAlign: "center" }}>
+        Total: {distritos.length} distrito{distritos.length !== 1 ? "s" : ""}
+      </div>
+    </div>
+  );
+}
+
+// ─── ADMIN: IGLESIAS TAB ───
+function AdminIglesiasTab({ admin, isSuperadmin }) {
+  const [distritos, setDistritos] = useState([]);
+  const [iglesias, setIglesias] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedDistrito, setSelectedDistrito] = useState(isSuperadmin ? "" : admin.distrito_id);
+  const [newIglesia, setNewIglesia] = useState("");
+  const [newCodigo, setNewCodigo] = useState("");
+  const [adding, setAdding] = useState(false);
+
+  const load = async () => {
+    try {
+      const [dData, iData] = await Promise.all([
+        isSuperadmin ? supaFetch("distritos?select=id,nombre&order=nombre") : supaFetch(`distritos?select=id,nombre&id=eq.${admin.distrito_id}`),
+        isSuperadmin ? supaFetch("iglesias?select=id,nombre,codigo,distrito_id,distritos(nombre)&order=nombre") : supaFetch(`iglesias?select=id,nombre,codigo,distrito_id,distritos(nombre)&distrito_id=eq.${admin.distrito_id}&order=nombre`),
+      ]);
+      setDistritos(dData || []);
+      setIglesias(iData || []);
+      if (!isSuperadmin && dData?.length > 0) setSelectedDistrito(dData[0].id);
+    } catch {}
+    setLoading(false);
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const filteredIglesias = selectedDistrito ? iglesias.filter(i => i.distrito_id === selectedDistrito) : iglesias;
+
+  const addIglesia = async () => {
+    if (!newIglesia.trim() || !selectedDistrito) return;
+    setAdding(true);
+    try {
+      await supaFetch("iglesias", {
+        method: "POST",
+        body: {
+          nombre: newIglesia.trim(),
+          distrito_id: selectedDistrito,
+          codigo: newCodigo.trim().toUpperCase() || newIglesia.trim().toUpperCase().replace(/\s+/g, "-") + "-2026",
+        },
+      });
+      setNewIglesia("");
+      setNewCodigo("");
+      await load();
+    } catch (err) { alert("Error al crear iglesia. El código puede estar duplicado."); }
+    setAdding(false);
+  };
+
+  const deleteIglesia = async (id, nombre) => {
+    if (!confirm(`¿Eliminar la iglesia "${nombre}"?`)) return;
+    try {
+      await supaFetch(`iglesias?id=eq.${id}`, { method: "DELETE" });
+      await load();
+    } catch (err) { alert("Error al eliminar"); }
+  };
+
+  const [iglesiaStats, setIglesiaStats] = useState({});
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const [estData, progData] = await Promise.all([
+          supaFetch("estudiantes?select=id,iglesia_id").catch(() => []),
+          supaFetch("progreso?select=estudiante_id,leccion_id").catch(() => []),
+        ]);
+        const prog = progData || [];
+        const stats = {};
+        (estData || []).forEach(e => {
+          const completed = prog.filter(p => p.estudiante_id === e.id).length;
+          if (!stats[e.iglesia_id]) stats[e.iglesia_id] = { estudiantes: 0, totalLecciones: 0 };
+          stats[e.iglesia_id].estudiantes += 1;
+          stats[e.iglesia_id].totalLecciones += completed;
+        });
+        Object.keys(stats).forEach(id => {
+          stats[id].avgPct = stats[id].estudiantes > 0 ? Math.round(stats[id].totalLecciones / (stats[id].estudiantes * 20) * 100) : 0;
+        });
+        setIglesiaStats(stats);
+      } catch {}
+    })();
+  }, [iglesias]);
+
+  if (loading) return <div style={{ color: "#3d6878", textAlign: "center", padding: 40 }}>Cargando...</div>;
+
+  const inputStyle = { padding: "12px 14px", background: "rgba(0,212,200,.04)", border: "1.5px solid rgba(0,212,200,.15)", borderRadius: 10, color: "#e8f4f8", fontSize: 14, fontFamily: "'Source Sans 3'", outline: "none", boxSizing: "border-box" };
+
+  const statsIglesias = filteredIglesias.map(i => ({ ...i, ...(iglesiaStats[i.id] || { estudiantes: 0, avgPct: 0 }) })).sort((a, b) => b.avgPct - a.avgPct);
+  const maxPct = Math.max(...statsIglesias.map(i => i.avgPct), 1);
+
+  return (
+    <div>
+      {/* Chart section */}
+      {statsIglesias.length > 0 && (
+        <ChartSection title="Ranking de Iglesias — Promedio de Progreso" icon="📊">
+          {statsIglesias.map((i, idx) => (
+            <HBar key={i.id} label={`${i.nombre}${i.distritos ? ` (${i.distritos.nombre})` : ""}`} value={i.avgPct} maxVal={maxPct} suffix="%" rank={idx} />
+          ))}
+          <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginTop: 12, paddingTop: 12, borderTop: "1px solid rgba(0,212,200,.08)" }}>
+            {statsIglesias.map(i => (
+              <div key={i.id} style={{ fontSize: 12, color: "#3d6878" }}>
+                <span style={{ color: "#5a9aaa", fontWeight: 600 }}>⛪ {i.nombre}</span>: {i.estudiantes || 0} est.
+              </div>
+            ))}
+          </div>
+        </ChartSection>
+      )}
+
+      {/* Distrito filter */}
+      {isSuperadmin && (
+        <div style={{ marginBottom: 16 }}>
+          <select style={{ ...inputStyle, width: "100%", appearance: "none", cursor: "pointer" }} value={selectedDistrito} onChange={e => setSelectedDistrito(e.target.value)}>
+            <option value="" style={{ background: "#030f1c" }}>Todos los distritos</option>
+            {distritos.map(d => <option key={d.id} value={d.id} style={{ background: "#030f1c" }}>{d.nombre}</option>)}
+          </select>
+        </div>
+      )}
+
+      {/* Add new */}
+      {selectedDistrito && (
+        <div style={{ display: "flex", gap: 10, marginBottom: 20, flexWrap: "wrap" }}>
+          <input style={{ ...inputStyle, flex: 2, minWidth: 150 }} placeholder="Nombre de la iglesia..." value={newIglesia} onChange={e => setNewIglesia(e.target.value)} onFocus={e => e.target.style.borderColor = "#00d4c8"} onBlur={e => e.target.style.borderColor = "rgba(0,212,200,.15)"} />
+          <input style={{ ...inputStyle, flex: 1, minWidth: 120 }} placeholder="Código (opcional)" value={newCodigo} onChange={e => setNewCodigo(e.target.value.toUpperCase())} onFocus={e => e.target.style.borderColor = "#00d4c8"} onBlur={e => e.target.style.borderColor = "rgba(0,212,200,.15)"} />
+          <button onClick={addIglesia} disabled={adding} style={{
+            padding: "12px 20px", background: "linear-gradient(135deg, #00d4c8, #7c3aed, #e91e8c)",
+            color: "#fff", border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700,
+            cursor: "pointer", fontFamily: "'Source Sans 3'", whiteSpace: "nowrap",
+          }}>
+            {adding ? "..." : "+ Agregar"}
+          </button>
+        </div>
+      )}
+
+      {/* List */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {statsIglesias.map((i, idx) => (
+          <div key={i.id} style={{
+            display: "flex", justifyContent: "space-between", alignItems: "center",
+            padding: "14px 18px", background: "rgba(0,212,200,.03)",
+            borderRadius: 12, border: "1px solid rgba(0,212,200,.1)",
+            flexWrap: "wrap", gap: 8,
+          }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                <span style={{ fontSize: 15, color: "#e8f4f8", fontWeight: 600 }}>⛪ {i.nombre}</span>
+                {i.distritos && <span style={{ fontSize: 11, color: "#3d6878" }}>— {i.distritos.nombre}</span>}
+              </div>
+              <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+                <span style={{ fontSize: 11, color: "#5a9aaa" }}>👥 {i.estudiantes || 0} estudiantes</span>
+                <span style={{ fontSize: 11, fontWeight: 700, background: "linear-gradient(135deg,#00d4c8,#e91e8c)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>{i.avgPct || 0}% promedio</span>
+                <span style={{ fontSize: 11, color: "#3d6878" }}>Código: {i.codigo}</span>
+              </div>
+              <div style={{ marginTop: 6, background: "rgba(255,255,255,.05)", borderRadius: 4, height: 5, overflow: "hidden", maxWidth: 200 }}>
+                <div style={{ height: "100%", width: `${i.avgPct || 0}%`, background: "linear-gradient(90deg,#00d4c8,#e91e8c)", borderRadius: 4 }} />
+              </div>
+            </div>
+            <button onClick={() => deleteIglesia(i.id, i.nombre)} style={{
+              background: "none", border: "1px solid rgba(239,68,68,.3)",
+              color: "#ef4444", padding: "4px 12px", borderRadius: 8,
+              fontSize: 11, cursor: "pointer", fontFamily: "'Source Sans 3'",
+            }}>
+              Eliminar
+            </button>
+          </div>
+        ))}
+        {filteredIglesias.length === 0 && <p style={{ color: "#3d6878", textAlign: "center", padding: 20 }}>No hay iglesias{selectedDistrito ? " en este distrito" : ""}</p>}
+      </div>
+      <div style={{ marginTop: 16, fontSize: 13, color: "#3d6878", textAlign: "center" }}>
+        Total: {filteredIglesias.length} iglesia{filteredIglesias.length !== 1 ? "s" : ""}
+      </div>
+    </div>
+  );
+}
+
+// ─── ADMIN: PASTORES TAB ───
+function AdminPastoresTab() {
+  const [pastores, setPastores] = useState([]);
+  const [distritos, setDistritos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ nombre: "", email: "", password: "", distrito_id: "", rol: "pastor" });
+  const [adding, setAdding] = useState(false);
+
+  const load = async () => {
+    try {
+      const [pData, dData] = await Promise.all([
+        supaFetch("pastores?select=id,nombre,email,rol,distrito_id,distritos(nombre)&order=nombre"),
+        supaFetch("distritos?select=id,nombre&order=nombre"),
+      ]);
+      setPastores(pData || []);
+      setDistritos(dData || []);
+    } catch {}
+    setLoading(false);
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const addPastor = async () => {
+    if (!form.nombre.trim() || !form.email.trim() || !form.password.trim()) return;
+    setAdding(true);
+    try {
+      await supaFetch("pastores", {
+        method: "POST",
+        body: {
+          nombre: form.nombre.trim(),
+          email: form.email.trim(),
+          password_hash: "temp_" + form.password.trim(),
+          distrito_id: form.distrito_id || null,
+          rol: form.rol,
+        },
+      });
+
+      // Send welcome email via EmailJS
+      const distritoNombre = distritos.find(d => d.id === form.distrito_id)?.nombre || "Sin distrito";
+      try {
+        await fetch("https://api.emailjs.com/api/v1.0/email/send", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            service_id: "service_lrvmew4",
+            template_id: "template_pz3csse",
+            user_id: "TJcUZKEVtkhvH9ygu",
+            template_params: {
+              email: form.email.trim(),
+              pastor_nombre: form.nombre.trim(),
+              pastor_email: form.email.trim(),
+              password_temp: form.password.trim(),
+              distrito_nombre: distritoNombre,
+              app_url: "https://iglesiaadventista-cucuta.github.io/curso-fe-de-jesus/",
+            },
+          }),
+        });
+      } catch (emailErr) {
+        console.error("Error sending email:", emailErr);
+      }
+
+      setForm({ nombre: "", email: "", password: "", distrito_id: "", rol: "pastor" });
+      setShowForm(false);
+      await load();
+    } catch (err) { alert("Error al crear pastor. El email puede estar duplicado."); }
+    setAdding(false);
+  };
+
+  const deletePastor = async (id, nombre) => {
+    if (!confirm(`¿Eliminar al pastor "${nombre}"?`)) return;
+    try {
+      await supaFetch(`pastores?id=eq.${id}`, { method: "DELETE" });
+      await load();
+    } catch (err) { alert("Error al eliminar"); }
+  };
+
+  if (loading) return <div style={{ color: "#3d6878", textAlign: "center", padding: 40 }}>Cargando...</div>;
+
+  const inputStyle = { width: "100%", padding: "12px 14px", background: "rgba(0,212,200,.04)", border: "1.5px solid rgba(0,212,200,.15)", borderRadius: 10, color: "#e8f4f8", fontSize: 14, fontFamily: "'Source Sans 3'", outline: "none", boxSizing: "border-box" };
+
+  return (
+    <div>
+      {!showForm ? (
+        <button onClick={() => setShowForm(true)} style={{
+          marginBottom: 20, padding: "12px 24px", background: "linear-gradient(135deg, #00d4c8, #7c3aed, #e91e8c)",
+          color: "#fff", border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700,
+          cursor: "pointer", fontFamily: "'Source Sans 3'",
+        }}>
+          + Crear Pastor / Admin
+        </button>
+      ) : (
+        <div style={{ background: "rgba(0,212,200,.03)", borderRadius: 16, padding: "20px", border: "1px solid rgba(0,212,200,.15)", marginBottom: 20, display: "flex", flexDirection: "column", gap: 12 }}>
+          <h3 style={{ background: "linear-gradient(135deg,#00d4c8,#e91e8c)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontSize: 16, fontWeight: 700, margin: 0, fontFamily: "'Source Sans 3'" }}>Nuevo Pastor</h3>
+          <input style={inputStyle} placeholder="Nombre completo" value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })} onFocus={e => e.target.style.borderColor = "#00d4c8"} onBlur={e => e.target.style.borderColor = "rgba(0,212,200,.15)"} />
+          <input style={inputStyle} placeholder="Email" type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} onFocus={e => e.target.style.borderColor = "#00d4c8"} onBlur={e => e.target.style.borderColor = "rgba(0,212,200,.15)"} />
+          <input style={inputStyle} placeholder="Contraseña temporal" type="text" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} onFocus={e => e.target.style.borderColor = "#00d4c8"} onBlur={e => e.target.style.borderColor = "rgba(0,212,200,.15)"} />
+          <select style={{ ...inputStyle, appearance: "none", cursor: "pointer" }} value={form.distrito_id} onChange={e => setForm({ ...form, distrito_id: e.target.value })}>
+            <option value="" style={{ background: "#030f1c" }}>Sin distrito asignado</option>
+            {distritos.map(d => <option key={d.id} value={d.id} style={{ background: "#030f1c" }}>{d.nombre}</option>)}
+          </select>
+          <select style={{ ...inputStyle, appearance: "none", cursor: "pointer" }} value={form.rol} onChange={e => setForm({ ...form, rol: e.target.value })}>
+            <option value="pastor" style={{ background: "#030f1c" }}>Pastor</option>
+            <option value="superadmin" style={{ background: "#030f1c" }}>Super Admin</option>
+          </select>
+          <div style={{ display: "flex", gap: 10 }}>
+            <button onClick={addPastor} disabled={adding} style={{ flex: 1, padding: "12px", background: "linear-gradient(135deg, #00d4c8, #e91e8c)", color: "#fff", border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'Source Sans 3'" }}>
+              {adding ? "Creando..." : "Crear"}
+            </button>
+            <button onClick={() => setShowForm(false)} style={{ padding: "12px 20px", background: "rgba(255,255,255,.04)", border: "1px solid rgba(0,212,200,.15)", borderRadius: 10, color: "#5a9aaa", fontSize: 14, cursor: "pointer", fontFamily: "'Source Sans 3'" }}>
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* List */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {pastores.map(p => (
+          <div key={p.id} style={{
+            display: "flex", justifyContent: "space-between", alignItems: "center",
+            padding: "14px 18px", background: "rgba(0,212,200,.03)",
+            borderRadius: 12, border: "1px solid rgba(0,212,200,.1)",
+            flexWrap: "wrap", gap: 8,
+          }}>
+            <div>
+              <span style={{ fontSize: 15, color: "#e8f4f8", fontWeight: 600 }}>👤 {p.nombre}</span>
+              <span style={{ fontSize: 11, marginLeft: 8, padding: "2px 8px", borderRadius: 6, fontWeight: 600, background: p.rol === "superadmin" ? "rgba(0,212,200,.15)" : "rgba(34,197,94,.12)", color: p.rol === "superadmin" ? "#00d4c8" : "#22c55e" }}>
+                {p.rol === "superadmin" ? "SUPERADMIN" : "PASTOR"}
+              </span>
+              <div style={{ fontSize: 12, color: "#3d6878", marginTop: 2 }}>{p.email}</div>
+              {p.distritos && <div style={{ fontSize: 11, color: "#5a9aaa", marginTop: 1 }}>Distrito: {p.distritos.nombre}</div>}
+            </div>
+            <button onClick={() => deletePastor(p.id, p.nombre)} style={{
+              background: "none", border: "1px solid rgba(239,68,68,.3)",
+              color: "#ef4444", padding: "4px 12px", borderRadius: 8,
+              fontSize: 11, cursor: "pointer", fontFamily: "'Source Sans 3'",
+            }}>
+              Eliminar
+            </button>
+          </div>
+        ))}
+      </div>
+      <div style={{ marginTop: 16, fontSize: 13, color: "#3d6878", textAlign: "center" }}>
+        Total: {pastores.length} pastores/admins
+      </div>
+    </div>
+  );
+}
+
+// ─── PRINT CERTIFICATE HELPER ───
+function printCertificado(est, progCount) {
+  const dateStr = new Date().toLocaleDateString("es-CO", { day: "numeric", month: "long", year: "numeric" });
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Certificado — ${est.nombre}</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;800&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Source Sans 3',sans-serif;background:#f5f0e0;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+.cert{width:750px;padding:56px 60px;background:linear-gradient(135deg,#fefdf5 0%,#faf4e0 50%,#f5ecd0 100%);border:4px solid #d4a843;position:relative;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.15)}
+.corner{position:absolute;width:44px;height:44px}
+.tl{top:14px;left:14px;border-top:3px solid #d4a843;border-left:3px solid #d4a843}
+.tr{top:14px;right:14px;border-top:3px solid #d4a843;border-right:3px solid #d4a843}
+.bl{bottom:14px;left:14px;border-bottom:3px solid #d4a843;border-left:3px solid #d4a843}
+.br{bottom:14px;right:14px;border-bottom:3px solid #d4a843;border-right:3px solid #d4a843}
+.subtitle{font-size:11px;letter-spacing:5px;color:#8b6f3a;text-transform:uppercase;font-weight:600}
+.divider{width:80px;height:2px;background:linear-gradient(90deg,transparent,#d4a843,transparent);margin:10px auto}
+.label{font-size:13px;letter-spacing:3px;color:#a0864a;margin-bottom:6px}
+h1{font-family:'Playfair Display',serif;font-size:48px;font-weight:800;color:#2d1b0e;margin:0 0 4px}
+.course{font-family:'Playfair Display',serif;font-size:15px;font-style:italic;color:#8b6f3a;margin-bottom:30px}
+.body-text{font-size:14px;color:#5a4a32;line-height:1.8;max-width:420px;margin:0 auto 30px}
+.name{font-family:'Playfair Display',serif;font-size:32px;font-weight:700;color:#2d1b0e;border-bottom:2px solid #d4a843;display:inline-block;padding-bottom:4px;margin-bottom:24px}
+.sigs{display:flex;justify-content:center;gap:60px;margin:24px 0}
+.sig-line{width:140px;border-bottom:1.5px solid #a0864a;padding-bottom:5px;font-size:14px;color:#2d1b0e;font-weight:600;margin-bottom:4px}
+.sig-label{font-size:10px;color:#8b6f3a;letter-spacing:1px;text-transform:uppercase}
+.location{font-size:11px;color:#a0864a;letter-spacing:2px;margin-top:12px}
+@media print{body{background:white}@page{margin:1cm}}
+</style></head><body>
+<div class="cert">
+  <div class="corner tl"></div><div class="corner tr"></div>
+  <div class="corner bl"></div><div class="corner br"></div>
+  <p class="subtitle">Iglesia Adventista del Séptimo Día</p>
+  <div class="divider"></div>
+  <p class="label">CERTIFICADO DE</p>
+  <h1>GRADUACIÓN</h1>
+  <p class="course">Curso Bíblico "La Fe de Jesús"</p>
+  <p style="font-size:14px;color:#5a4a32;margin-bottom:10px">Se otorga el presente certificado a:</p>
+  <div class="name">${est.nombre}</div>
+  <p class="body-text">Por haber completado satisfactoriamente las <strong>20 lecciones</strong> del curso bíblico "La Fe de Jesús", demostrando dedicación en el estudio de las Sagradas Escrituras.</p>
+  <div class="sigs">
+    <div><div class="sig-line">${est.instructor_nombre || "—"}</div><div class="sig-label">${est.instructor_rol || "Instructor"}</div></div>
+    <div><div class="sig-line">${dateStr}</div><div class="sig-label">Fecha</div></div>
+  </div>
+  ${est.iglesias ? `<p class="location">⛪ ${est.iglesias.nombre}${est.iglesias.distritos ? " — " + est.iglesias.distritos.nombre : ""}</p>` : ""}
+  <p class="location" style="margin-top:16px;font-style:italic">"Toda la Escritura es inspirada por Dios" — 2 Timoteo 3:16</p>
+</div>
+<script>window.onload=()=>{setTimeout(()=>{window.print();},400);}<\/script>
+</body></html>`;
+  const w = window.open("", "_blank");
+  w.document.write(html);
+  w.document.close();
+}
+
+// ─── ADMIN: ESTUDIANTES TAB ───
+function AdminEstudiantesTab({ admin, isSuperadmin }) {
+  const [estudiantes, setEstudiantes] = useState([]);
+  const [progreso, setProgreso] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState(null);
+  const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const estQuery = isSuperadmin
+          ? "estudiantes?select=id,nombre,telefono,iglesia_id,instructor_nombre,instructor_rol,created_at,iglesias(nombre,distritos(nombre))&order=nombre"
+          : `estudiantes?select=id,nombre,telefono,iglesia_id,instructor_nombre,instructor_rol,created_at,iglesias!inner(nombre,distrito_id,distritos(nombre))&iglesias.distrito_id=eq.${admin.distrito_id}&order=nombre`;
+        const [estData, progData] = await Promise.all([
+          supaFetch(estQuery).catch(() => []),
+          supaFetch("progreso?select=estudiante_id,leccion_id,completed_at").catch(() => []),
+        ]);
+        setEstudiantes(estData || []);
+        setProgreso(progData || []);
+      } catch {}
+      setLoading(false);
+    })();
+  }, []);
+
+  const getProgress = (id) => {
+    const completed = progreso.filter(p => p.estudiante_id === id).length;
+    return { completed, pct: Math.round((completed / 20) * 100) };
+  };
+
+  if (loading) return <div style={{ color: "#3d6878", textAlign: "center", padding: 40 }}>Cargando...</div>;
+
+  const filtered = estudiantes.filter(e =>
+    e.nombre.toLowerCase().includes(search.toLowerCase()) ||
+    (e.iglesias?.nombre || "").toLowerCase().includes(search.toLowerCase())
+  );
+
+  // Sort by progress desc
+  const sorted = [...filtered].sort((a, b) => getProgress(b.id).pct - getProgress(a.id).pct);
+
+  return (
+    <div>
+      {/* Header + search */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, flexWrap: "wrap", gap: 10 }}>
+        <div style={{ fontSize: 14, color: "#5a9aaa" }}>
+          <span style={{ fontWeight: 700, color: "#00d4c8" }}>{estudiantes.length}</span> estudiante{estudiantes.length !== 1 ? "s" : ""} — ordenados por progreso
+        </div>
+        <input
+          value={search} onChange={e => setSearch(e.target.value)}
+          placeholder="Buscar por nombre o iglesia..."
+          style={{ padding: "9px 14px", background: "rgba(0,212,200,.05)", border: "1px solid rgba(0,212,200,.2)", borderRadius: 10, color: "#e8f4f8", fontSize: 13, fontFamily: "'Source Sans 3'", outline: "none", minWidth: 220 }}
+          onFocus={e => e.target.style.borderColor = "#00d4c8"} onBlur={e => e.target.style.borderColor = "rgba(0,212,200,.2)"}
+        />
+      </div>
+
+      {sorted.length === 0 ? (
+        <p style={{ color: "#3d6878", textAlign: "center", padding: 40 }}>No hay estudiantes{search ? " que coincidan" : " registrados"}</p>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {sorted.map((est, idx) => {
+            const prog = getProgress(est.id);
+            return (
+              <div key={est.id}
+                onClick={() => setSelected(est)}
+                style={{
+                  padding: "14px 18px", background: "rgba(0,212,200,.03)",
+                  borderRadius: 14, border: "1px solid rgba(0,212,200,.1)",
+                  cursor: "pointer", transition: "all .2s",
+                }}
+                onMouseOver={e => { e.currentTarget.style.background = "rgba(0,212,200,.07)"; e.currentTarget.style.borderColor = "rgba(0,212,200,.25)"; }}
+                onMouseOut={e => { e.currentTarget.style.background = "rgba(0,212,200,.03)"; e.currentTarget.style.borderColor = "rgba(0,212,200,.1)"; }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div style={{ width: 32, height: 32, borderRadius: "50%", background: `linear-gradient(135deg, #00d4c8, #e91e8c)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 800, color: "#fff", flexShrink: 0 }}>
+                      {idx + 1}
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 15, color: "#e8f4f8", fontWeight: 600 }}>{est.nombre}</div>
+                      <div style={{ fontSize: 11, color: "#3d6878" }}>
+                        {est.iglesias ? `⛪ ${est.iglesias.nombre}` : "Sin iglesia"}{est.iglesias?.distritos ? ` · ${est.iglesias.distritos.nombre}` : ""}
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 14, flexShrink: 0 }}>
+                    <div style={{ textAlign: "right" }}>
+                      <div style={{ fontSize: 22, fontWeight: 800, background: prog.pct === 100 ? "linear-gradient(135deg,#22c55e,#16a34a)" : "linear-gradient(135deg,#00d4c8,#e91e8c)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontFamily: "'Playfair Display', serif" }}>{prog.pct}%</div>
+                      <div style={{ fontSize: 11, color: "#3d6878" }}>{prog.completed}/20 lecciones</div>
+                      {prog.pct === 100 && <div style={{ fontSize: 10, color: "#22c55e", fontWeight: 700 }}>🎓 GRADUADO</div>}
+                    </div>
+                    <span style={{ fontSize: 16, color: "#3d6878" }}>›</span>
+                  </div>
+                </div>
+                {/* Mini progress bar */}
+                <div style={{ marginTop: 8, background: "rgba(255,255,255,.05)", borderRadius: 4, height: 5, overflow: "hidden" }}>
+                  <div style={{ height: "100%", width: `${prog.pct}%`, background: prog.pct === 100 ? "linear-gradient(90deg,#22c55e,#16a34a)" : "linear-gradient(90deg,#00d4c8,#e91e8c)", borderRadius: 4, transition: "width .6s ease" }} />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Student Detail Modal */}
+      {selected && (
+        <StudentDetailModal
+          est={selected}
+          prog={progreso.filter(p => p.estudiante_id === selected.id)}
+          onClose={() => setSelected(null)}
+          onPrint={() => printCertificado(selected, progreso.filter(p => p.estudiante_id === selected.id).length)}
+        />
+      )}
+    </div>
+  );
+}
+
+// ─── STUDENT DETAIL MODAL ───
+function StudentDetailModal({ est, prog, onClose, onPrint }) {
+  const completedIds = prog.map(p => p.leccion_id);
+  const pct = Math.round((completedIds.length / 20) * 100);
+  const isGraduado = completedIds.length === 20;
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.85)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div style={{ background: "linear-gradient(160deg, #061a2e, #0a1f35)", borderRadius: 20, padding: "28px 24px", maxWidth: 540, width: "100%", border: "1px solid rgba(0,212,200,.2)", maxHeight: "90vh", overflowY: "auto", position: "relative", animation: "fadeUp .3s ease" }}>
+        <button onClick={onClose} style={{ position: "absolute", top: 16, right: 16, background: "none", border: "none", color: "#3d6878", fontSize: 20, cursor: "pointer", lineHeight: 1 }}>✕</button>
+
+        {/* Header */}
+        <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 20 }}>
+          <div style={{ width: 52, height: 52, borderRadius: "50%", background: "linear-gradient(135deg,#00d4c8,#e91e8c)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, fontWeight: 800, color: "#fff", flexShrink: 0 }}>
+            {est.nombre.charAt(0).toUpperCase()}
+          </div>
+          <div>
+            <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 700, color: "#e8f4f8", margin: "0 0 3px" }}>{est.nombre}</h3>
+            <div style={{ fontSize: 12, color: "#3d6878" }}>{est.telefono}</div>
+          </div>
+        </div>
+
+        {/* Info grid */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 20 }}>
+          {[
+            ["⛪ Iglesia", est.iglesias?.nombre || "Sin iglesia"],
+            ["🏛️ Distrito", est.iglesias?.distritos?.nombre || "—"],
+            ["👤 Instructor", est.instructor_nombre || "—"],
+            ["🎓 Rol", est.instructor_rol || "—"],
+          ].map(([label, val]) => (
+            <div key={label} style={{ background: "rgba(0,212,200,.04)", borderRadius: 10, padding: "10px 14px", border: "1px solid rgba(0,212,200,.1)" }}>
+              <div style={{ fontSize: 11, color: "#3d6878", marginBottom: 3 }}>{label}</div>
+              <div style={{ fontSize: 13, color: "#8ec8d0", fontWeight: 600 }}>{val}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Progress summary */}
+        <div style={{ background: "rgba(0,212,200,.05)", borderRadius: 14, padding: "16px 18px", border: "1px solid rgba(0,212,200,.15)", marginBottom: 18 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+            <div>
+              <div style={{ fontSize: 11, color: "#3d6878", letterSpacing: 1 }}>PROGRESO TOTAL</div>
+              <div style={{ fontSize: 28, fontWeight: 800, background: isGraduado ? "linear-gradient(135deg,#22c55e,#16a34a)" : "linear-gradient(135deg,#00d4c8,#e91e8c)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontFamily: "'Playfair Display', serif" }}>
+                {completedIds.length}<span style={{ fontSize: 16, WebkitTextFillColor: "#3d6878" }}>/20</span>
+              </div>
+              {isGraduado && <div style={{ fontSize: 12, color: "#22c55e", fontWeight: 700 }}>🎓 GRADUADO</div>}
+            </div>
+            <div style={{ fontSize: 30, fontWeight: 800, background: isGraduado ? "linear-gradient(135deg,#22c55e,#16a34a)" : "linear-gradient(135deg,#00d4c8,#e91e8c)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontFamily: "'Playfair Display', serif" }}>{pct}%</div>
+          </div>
+          <div style={{ background: "rgba(255,255,255,.06)", borderRadius: 6, height: 8, overflow: "hidden" }}>
+            <div style={{ height: "100%", width: `${pct}%`, background: isGraduado ? "linear-gradient(90deg,#22c55e,#16a34a)" : "linear-gradient(90deg,#00d4c8,#e91e8c)", borderRadius: 6, transition: "width .6s" }} />
+          </div>
+        </div>
+
+        {/* Lessons grid */}
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: 12, color: "#3d6878", marginBottom: 10, letterSpacing: 1 }}>LECCIONES COMPLETADAS</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 6 }}>
+            {Array.from({ length: 20 }, (_, i) => {
+              const done = completedIds.includes(i + 1);
+              return (
+                <div key={i} style={{
+                  borderRadius: 8, padding: "8px 4px", textAlign: "center",
+                  background: done ? "rgba(0,212,200,.12)" : "rgba(255,255,255,.03)",
+                  border: `1px solid ${done ? "rgba(0,212,200,.3)" : "rgba(255,255,255,.06)"}`,
+                }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: done ? "#00d4c8" : "#3d6878" }}>{done ? "✓" : i + 1}</div>
+                  <div style={{ fontSize: 9, color: done ? "#5a9aaa" : "#3d6878" }}>L{i + 1}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div style={{ display: "flex", gap: 10 }}>
+          {isGraduado && (
+            <button onClick={onPrint} style={{
+              flex: 1, padding: "13px", background: "linear-gradient(135deg,#00d4c8,#7c3aed,#e91e8c)",
+              color: "#fff", border: "none", borderRadius: 12, fontSize: 14, fontWeight: 700,
+              cursor: "pointer", fontFamily: "'Source Sans 3'",
+              boxShadow: "0 4px 20px rgba(0,212,200,.25)",
+            }}>
+              🖨️ Imprimir Certificado
+            </button>
+          )}
+          <button onClick={onClose} style={{
+            flex: isGraduado ? "0 0 auto" : 1, padding: "13px 20px",
+            background: "rgba(255,255,255,.05)", border: "1px solid rgba(255,255,255,.1)",
+            color: "#5a9aaa", borderRadius: 12, fontSize: 14, cursor: "pointer", fontFamily: "'Source Sans 3'",
+          }}>
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+    // ─── RENDER ───
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>
