@@ -1,0 +1,10 @@
+{
+  "name": "SEVEN-CONNECT",
+  "short_name": "SEVEN",
+  "start_url": "./index.html?admin=1",
+  "display": "standalone",
+  "background_color": "#FFFDF5",
+  "theme_color": "#0F2D46",
+  "description": "Sistema evangelístico con seguimiento espiritual y alertas pastorales.",
+  "icons": []
+}
