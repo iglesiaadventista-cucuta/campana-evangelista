@@ -1,26 +1,6 @@
 (function () {
   "use strict";
 
-  const URL = "https://kshmetrlquskxsighywn.supabase.co";
-  const KEY = "TU_KEY_ANON_AQUI";
-
-  async function api(tabla, query) {
-    const res = await fetch(`${URL}/rest/v1/${tabla}?${query}`, {
-      headers: {
-        apikey: KEY,
-        Authorization: `Bearer ${KEY}`,
-        "Content-Type": "application/json"
-      }
-    });
-
-    if (!res.ok) {
-      console.warn("[ALERTAS] Error API", tabla, res.status);
-      return [];
-    }
-
-    return await res.json();
-  }
-
   function diasDesde(fecha) {
     if (!fecha) return 999;
     const f = new Date(fecha);
@@ -28,20 +8,30 @@
     return Math.floor((new Date() - f) / 86400000);
   }
 
-  function buscarCampanitaOriginal() {
-    return document.querySelector(".sc-bell") || document.querySelector("[onclick*='alert']");
+  function nombrePersona(p) {
+    return p.nombre_completo || p.nombre || p.nombres || "Persona";
   }
 
   async function cargarAlertas() {
-    const personas = await api("personas", "select=*&limit=1000");
-    const segs = await api("seguimiento_espiritual", "select=*&limit=2000");
+    if (typeof sbGet !== "function") {
+      console.warn("[ALERTAS] sbGet no está disponible todavía.");
+      return;
+    }
 
-    const segMap = {};
+    const personas = await sbGet("personas", "select=*");
+    const segs = await sbGet("seguimiento_espiritual", "select=*");
+
+    if (!Array.isArray(personas) || !Array.isArray(segs)) {
+      console.warn("[ALERTAS] No se pudieron leer datos.");
+      return;
+    }
+
+    const mapa = {};
     segs.forEach(s => {
       const id = String(s.persona_id || s.cedula || "");
       const fecha = s.fecha || s.fecha_seguimiento || s.creado_en || s.created_at;
-      if (!segMap[id] || new Date(fecha) > new Date(segMap[id]._fecha || 0)) {
-        segMap[id] = { ...s, _fecha: fecha };
+      if (!mapa[id] || new Date(fecha) > new Date(mapa[id]._fecha || 0)) {
+        mapa[id] = { ...s, _fecha: fecha };
       }
     });
 
@@ -49,13 +39,12 @@
 
     personas.forEach(p => {
       const id = String(p.id || p.cedula || "");
-      const nombre = p.nombre || p.nombres || p.nombre_completo || "Persona";
-      const ult = segMap[id];
+      const ult = mapa[id];
 
       if (!ult) {
         alertas.push({
           titulo: "🟡 Nuevo interés sin seguimiento",
-          texto: `${nombre} no tiene seguimiento pastoral registrado.`
+          texto: `${nombrePersona(p)} no tiene seguimiento pastoral registrado.`
         });
         return;
       }
@@ -66,7 +55,7 @@
       if (dias >= 7 && !estado.includes("bautizado") && !estado.includes("miembro")) {
         alertas.push({
           titulo: "🔴 Seguimiento atrasado",
-          texto: `${nombre} lleva ${dias} días sin seguimiento.`
+          texto: `${nombrePersona(p)} lleva ${dias} días sin seguimiento.`
         });
       }
     });
@@ -76,12 +65,10 @@
     const badge = document.querySelector(".sc-bell-badge");
     if (badge) badge.textContent = alertas.length > 99 ? "99+" : alertas.length;
 
-    const bell = buscarCampanitaOriginal();
-    if (bell && !bell.dataset.alertasModulares) {
-      bell.dataset.alertasModulares = "1";
-      bell.addEventListener("click", function () {
-        mostrarPanel(alertas);
-      });
+    const bell = document.querySelector(".sc-bell");
+    if (bell && !bell.dataset.alertasOk) {
+      bell.dataset.alertasOk = "1";
+      bell.addEventListener("click", () => mostrarPanel(alertas));
     }
 
     console.log("[ALERTAS] Alertas cargadas:", alertas.length);
@@ -123,17 +110,8 @@
     `;
 
     document.body.appendChild(panel);
-
-    setTimeout(() => {
-      document.addEventListener("click", function cerrar(e) {
-        if (!panel.contains(e.target) && !e.target.closest(".sc-bell")) {
-          panel.remove();
-          document.removeEventListener("click", cerrar);
-        }
-      });
-    }, 100);
   }
 
-  setTimeout(cargarAlertas, 1500);
+  setTimeout(cargarAlertas, 2000);
   setInterval(cargarAlertas, 300000);
 })();
