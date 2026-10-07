@@ -741,8 +741,12 @@ tbody tr:hover td{background:#FFFAED}
       </div>
       <div class="field">
         <label>Contraseña</label>
-        <input type="password" id="loginPass" placeholder="••••••••"
-          onkeydown="if(event.key==='Enter')doLogin()" />
+        <div style="position:relative">
+          <input type="password" id="loginPass" placeholder="••••••••" style="padding-right:42px"
+            onkeydown="if(event.key==='Enter')doLogin()" />
+          <button type="button" onclick="toggleVerClave('loginPass', this)" title="Mostrar/ocultar contraseña"
+            style="position:absolute;right:4px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:17px;padding:6px;line-height:1;color:var(--muted2)">👁️</button>
+        </div>
       </div>
       <button class="btn primary block" id="btnLogin" onclick="doLogin()">Ingresar</button>
     </div>
@@ -1439,11 +1443,19 @@ CREATE POLICY "public_delete_asistencias" ON asistencias FOR DELETE USING (true)
           <div class="field-row">
             <div class="field">
               <label>Contraseña Admin</label>
-              <input type="password" id="cfgAdminPass" placeholder="Nueva contraseña" />
+              <div style="position:relative">
+                <input type="password" id="cfgAdminPass" placeholder="Nueva contraseña" style="padding-right:42px" />
+                <button type="button" onclick="toggleVerClave('cfgAdminPass', this)" title="Mostrar/ocultar contraseña"
+                  style="position:absolute;right:4px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:17px;padding:6px;line-height:1;color:var(--muted2)">👁️</button>
+              </div>
             </div>
             <div class="field">
               <label>Contraseña Viewer</label>
-              <input type="password" id="cfgViewerPass" placeholder="Nueva contraseña" />
+              <div style="position:relative">
+                <input type="password" id="cfgViewerPass" placeholder="Nueva contraseña" style="padding-right:42px" />
+                <button type="button" onclick="toggleVerClave('cfgViewerPass', this)" title="Mostrar/ocultar contraseña"
+                  style="position:absolute;right:4px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:17px;padding:6px;line-height:1;color:var(--muted2)">👁️</button>
+              </div>
             </div>
           </div>
           <button class="btn" onclick="guardarPasswords()">Actualizar contraseñas</button>
@@ -2143,6 +2155,14 @@ function setLoading(btnId, loading, label='') {
   btn.disabled=loading;
   btn.innerHTML=loading ? `<span class="spin"></span> Verificando...` : (label||btn.dataset.orig||btn.innerHTML);
   if (!loading && label) btn.dataset.orig=label;
+}
+
+function toggleVerClave(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  const mostrando = input.type === 'text';
+  input.type = mostrando ? 'password' : 'text';
+  btn.textContent = mostrando ? '👁️' : '🙈';
 }
 
 function toggleAutorizacion() {
@@ -3180,7 +3200,7 @@ async function cargarDashboardEstrategico() {
   try {
     const [asocs, distritos, campanas, personas, asistencias] = await Promise.all([
       sbGet('asociaciones', '?select=id,nombre,activa&limit=10000'),
-      sbGet('distritos', scScopeParams('?select=id,nombre,asociacion_id&limit=10000')),
+      sbGet('distritos', segScopeParams('?select=id,nombre,asociacion_id&limit=10000', 'distritos')),
       sbGet('campanas', scScopeParams('?select=id,nombre,distrito_id,asociacion_id,iglesia_sede,activa&limit=10000')),
       sbGet('personas', scScopeParams('?select=id,campana_id,distrito_id,asociacion_id&limit=100000')),
       sbGet('asistencias', scScopeParams('?select=persona_id,campana_id,distrito_id,asociacion_id,hora&limit=100000'))
