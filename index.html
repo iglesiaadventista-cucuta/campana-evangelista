@@ -479,22 +479,31 @@ tbody tr:hover td{background:#FFFAED}
         </div>
         <h1 style="font-family:'Lora',serif;font-size:26px;font-weight:600;color:var(--gold);line-height:1.2;margin-bottom:6px;text-shadow:0 0 20px rgba(37,92,138,.18)">SEVEN-CONNECT</h1>
         <p style="font-size:13px;color:#5A4000;margin-bottom:4px">Sistema de Registro y Asistencia · Iglesia Adventista del Séptimo Día</p>
-        <p style="font-size:14px;color:#3A2800;line-height:1.6;margin-top:14px">Ingresa tu documento de identidad para registrarte<br>o marcar tu asistencia</p>
+        <p style="font-size:14px;color:#3A2800;line-height:1.6;margin-top:14px">Ingresa tu número de celular para registrarte<br>o marcar tu asistencia</p>
       </div>
       <div class="card">
         <div id="cedAlert"></div>
-        <div class="field">
-          <label>Documento de identidad</label>
-          <input type="tel" id="cedInput" class="cedula-input" placeholder="_ _ _ _ _ _ _ _ _"
-            inputmode="numeric" maxlength="12"
-            onkeydown="if(event.key==='Enter')verificarCedula()" autofocus />
+        <div id="celPaso1">
+          <div class="field">
+            <label>Número de celular</label>
+            <input type="tel" id="celInput" class="cedula-input" placeholder="3 0 0 1 2 3 4 5 6 7"
+              inputmode="numeric" maxlength="10" autocomplete="tel"
+              oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)"
+              onkeydown="if(event.key==='Enter')verificarCelular()" autofocus />
+          </div>
+          <button class="btn primary block xl" id="btnVerificar" onclick="verificarCelular()" style="letter-spacing:.04em">
+            Continuar →
+          </button>
+          <p style="font-size:12px;color:#5A4000;text-align:center;margin-top:14px">
+            Si es tu primera vez, podrás completar tu registro a continuación
+          </p>
         </div>
-        <button class="btn primary block xl" id="btnVerificar" onclick="verificarCedula()" style="letter-spacing:.04em">
-          Continuar →
-        </button>
-        <p style="font-size:12px;color:#5A4000;text-align:center;margin-top:14px">
-          Si es tu primera vez, podrás completar tu registro a continuación
-        </p>
+        <div id="celPaso2" class="hidden">
+          <p style="font-size:14px;color:#3A2800;text-align:center;margin-bottom:14px">Este celular ya tiene registros. ¿Quién eres?</p>
+          <div id="celOpciones"></div>
+          <button class="btn block" style="margin-top:10px" onclick="registrarOtraPersonaCelular()">No soy ninguno · Registrarme</button>
+          <button class="btn block" style="margin-top:8px" onclick="mostrarPasoCelular(1)">← Cambiar número</button>
+        </div>
         <div style="text-align:center;margin-top:20px">
           <button onclick="abrirModoLlamado()" style="background:none;border:none;color:rgba(154,111,0,0.3);font-size:11px;cursor:pointer;padding:8px;letter-spacing:0.05em">✦ ✦ ✦</button>
         </div>
@@ -575,8 +584,8 @@ tbody tr:hover td{background:#FFFAED}
         <p class="card-sub">Campos marcados con * son obligatorios. Esta información se solicita una sola vez.</p>
         <div id="regAlert"></div>
         <div class="field">
-          <label>Cédula</label>
-          <input type="text" id="rCedula" readonly style="background:var(--gray-l);color:var(--muted);font-weight:500" />
+          <label>Celular / WhatsApp</label>
+          <input type="text" id="rCelular" readonly style="background:var(--gray-l);color:var(--muted);font-weight:500" />
         </div>
         <div class="field-row">
           <div class="field">
@@ -594,20 +603,16 @@ tbody tr:hover td{background:#FFFAED}
             <input type="number" id="rEdad" placeholder="Ej: 32" min="5" max="110" inputmode="numeric" />
           </div>
           <div class="field">
-            <label>Teléfono / WhatsApp *</label>
-            <input type="tel" id="rTelefono" placeholder="10 dígitos. Ej: 3001234567" inputmode="numeric" autocomplete="tel" maxlength="10" pattern="[0-9]{10}" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)" />
+            <label>Estado civil</label>
+            <select id="rEstadoCivil">
+              <option value="">— Selecciona una opción —</option>
+              <option value="Soltero">Soltero</option>
+              <option value="Casado">Casado</option>
+              <option value="Viudo">Viudo</option>
+              <option value="Divorciado">Divorciado</option>
+              <option value="Otro">Otro</option>
+            </select>
           </div>
-        </div>
-        <div class="field">
-          <label>Estado civil</label>
-          <select id="rEstadoCivil">
-            <option value="">— Selecciona una opción —</option>
-            <option value="Soltero">Soltero</option>
-            <option value="Casado">Casado</option>
-            <option value="Viudo">Viudo</option>
-            <option value="Divorciado">Divorciado</option>
-            <option value="Otro">Otro</option>
-          </select>
         </div>
         <div class="alert info" id="campaniaRegistroInfo" style="margin-bottom:14px">
           La campaña y la iglesia sede se asignan automáticamente desde el QR escaneado.
@@ -1729,7 +1734,6 @@ const CFG = {
 const SESSION = { rol: null, distrito_id: null, distrito_nombre: '', asociacion_id: null, asociacion_nombre: '' };
 let PERSONAS_CACHE = [];  // para filtrado rápido sin re-fetch
 let ASIST_DIA_CACHE = [];
-let currentCedula = '';
 let currentPersona = null;
 let REGISTRO_ADMIN_MODE = false;
 let ganadoresSeleccionados = [];
@@ -1934,30 +1938,24 @@ async function abrirRegistroDistrito() {
     return;
   }
 
-  const ced = prompt('Ingrese la cédula de la persona a registrar:');
-  if (!ced) return;
-  const cedula = String(ced).trim().replace(/\D/g, '');
-  if (cedula.length < 5) {
-    alert('Ingresa una cédula válida.');
+  const cel = prompt('Ingrese el número de celular de la persona a registrar (10 dígitos):');
+  if (!cel) return;
+  const celular = String(cel).trim().replace(/\D/g, '');
+  if (celular.length !== 10) {
+    alert('Ingresa un celular válido de 10 dígitos. Ej: 3001234567');
     return;
   }
 
-  const existe = await dbGetPersonaByCedula(cedula);
-  if (existe) {
-    alert('Esta persona ya está registrada en este distrito. Puedes marcarle asistencia desde el flujo normal.');
-    return;
+  let existentes = [];
+  try { existentes = await dbGetPersonasByCelular(celular); }
+  catch (e) { alert('No se pudo consultar. Revisa tu conexión e intenta de nuevo.'); return; }
+  if (existentes.length) {
+    const nombres = existentes.map(p => '• ' + (p.nombre_completo || '')).join('\n');
+    if (!confirm('Ya hay personas registradas con este celular:\n' + nombres + '\n\n¿Registrar a OTRA persona con el mismo celular?')) return;
   }
 
   REGISTRO_ADMIN_MODE = true;
-  currentCedula = cedula;
-  document.getElementById('rCedula').value = cedula;
-  ['rNombres','rApellidos','rEdad','rTelefono','rEstadoCivil','rDireccion','rInvitador'].forEach(id=>{
-    document.getElementById(id).value='';
-  });
-  document.getElementById('rDeseo').value='';
-  document.getElementById('regAlert').innerHTML='';
-  document.getElementById('chkAutorizo').checked=false;
-  toggleAutorizacion();
+  prepararFormularioRegistro(celular);
   document.getElementById('btnRegistrar').innerHTML='Guardar persona';
   goScreen('s-registro');
 }
@@ -2138,6 +2136,7 @@ function fmtHora(ts) {
 function goScreen(id) {
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+  if (id === 's-cedula') mostrarPasoCelular(1);
   // Update campaign name on public screens
   ['pubCampanaName','pubCampanaName2','pubCampanaName3'].forEach(el=>{
     const e=document.getElementById(el); if(e) e.textContent=CFG.campanaName;
@@ -2198,87 +2197,148 @@ function toggleRegistrador() {
 // ╔══════════════════════════════════════════════════════════╗
 //  FLUJO PÚBLICO — CÉDULA → REGISTRO / ASISTENCIA
 // ╚══════════════════════════════════════════════════════════╝
-async function verificarCedula() {
-  const ced = document.getElementById('cedInput').value.trim().replace(/\D/g,'');
-  if (!ced || ced.length < 5) { showAlert('cedAlert','Ingresa un número de cédula válido','error'); return; }
+let CEL_COINCIDENCIAS = [];
+let currentCelular = '';
 
-  document.getElementById('btnVerificar').disabled=true;
-  document.getElementById('btnVerificar').innerHTML=`<span class="spin"></span> Verificando...`;
+function mostrarPasoCelular(paso) {
+  document.getElementById('celPaso1').classList.toggle('hidden', paso !== 1);
+  document.getElementById('celPaso2').classList.toggle('hidden', paso !== 2);
+  if (paso === 1) document.getElementById('celInput').focus();
+}
 
-  const persona = await dbGetPersonaByCedula(ced);
+async function dbGetPersonasByCelular(cel) {
+  if (isDemo()) return DEMO_DB.personas.filter(p => p.telefono === cel || String(p.cedula) === cel);
+  const filtro = `or=(telefono.eq.${cel},cedula.eq.${cel})`;
+  const ctx = await scContextoCampaniaActual();
+  let rows = [];
+  if (ctx.asociacion_id) rows = await sbGet('personas', `?${filtro}&asociacion_id=eq.${encodeURIComponent(ctx.asociacion_id)}&limit=10`);
+  else if (ctx.distrito_id) rows = await sbGet('personas', `?${filtro}&distrito_id=eq.${encodeURIComponent(ctx.distrito_id)}&limit=10`);
+  if (Array.isArray(rows) && rows.length) return rows;
+  rows = await sbGet('personas', `?${filtro}&limit=10`);
+  if (!Array.isArray(rows)) throw new Error('consulta fallida');
+  return rows;
+}
 
-  document.getElementById('btnVerificar').disabled=false;
-  document.getElementById('btnVerificar').innerHTML='Continuar';
+async function verificarCelular() {
+  const cel = document.getElementById('celInput').value.replace(/\D/g,'');
+  if (cel.length !== 10) { showAlert('cedAlert','Ingresa un número de celular válido de 10 dígitos. Ej: 3001234567','error'); return; }
 
-  if (persona) {
-    // Ya existe → mostrar pantalla de asistencia
-    currentPersona = persona;
-    const ya = isDemo()
-      ? DEMO_DB.asistencias.find(a=>a.persona_id===persona.id&&a.fecha===todayStr())
-      : (await sbGet('asistencias',`?persona_id=eq.${persona.id}&fecha=eq.${todayStr()}${distritoQueryParam()}&limit=1`));
-    const yaHoy = Array.isArray(ya) ? ya.length > 0 : !!ya;
+  const btn = document.getElementById('btnVerificar');
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spin"></span> Verificando...`;
 
-    document.getElementById('foundCard').innerHTML=`
-      <div class="person-found">
-        <div class="pf-avatar">${initials(persona.nombre_completo)}</div>
-        <div>
-          <div class="pf-name">${persona.nombre_completo}</div>
-          <div class="pf-meta">CC: ${persona.cedula} · ${persona.telefono}</div>
-          <div class="pf-meta">${persona.direccion}</div>
-        </div>
-      </div>`;
-
-    if (yaHoy) {
-      // Revisar si ya tiene deseo guardado
-      const asistHoy = Array.isArray(ya) ? ya[0] : ya;
-      const horaParts = (asistHoy?.hora || '').split('|');
-      const deseoActual = (horaParts[1] || '').trim();
-
-      if (deseoActual && deseoActual.length > 0) {
-        document.getElementById('asistAlert').innerHTML=`<div class="alert warning">✅ Ya marcaste asistencia hoy. Tu deseo: <strong>${deseoActual}</strong>. ¡Dios te bendiga!</div>`;
-        document.getElementById('btnMarcar').disabled=true;
-        document.getElementById('btnMarcar').style.opacity='0.5';
-        document.getElementById('btnMarcar').style.display='none';
-        document.getElementById('deseoAsistencia').parentElement.style.display='none';
-        document.getElementById('btnGuardarDeseo').style.display='none';
-      } else {
-        document.getElementById('asistAlert').innerHTML=`<div class="alert warning">✅ Ya marcaste asistencia hoy. Si deseas, puedes agregar tu deseo ahora.</div>`;
-        document.getElementById('btnMarcar').disabled=true;
-        document.getElementById('btnMarcar').style.opacity='0.5';
-        document.getElementById('btnMarcar').style.display='none';
-        document.getElementById('deseoAsistencia').parentElement.style.display='';
-        document.getElementById('btnGuardarDeseo').style.display='';
-        console.log('Asistencia de hoy:', JSON.stringify(asistHoy));
-        document.getElementById('btnGuardarDeseo').dataset.asistId = asistHoy?.id || '';
-        document.getElementById('btnGuardarDeseo').dataset.horaOriginal = horaParts[0] || '';
-        document.getElementById('campoRegistrador').style.display = 'none';
-      }
-    } else {
-      document.getElementById('asistAlert').innerHTML='';
-      document.getElementById('btnMarcar').disabled=false;
-      document.getElementById('btnMarcar').style.opacity='1';
-      document.getElementById('btnMarcar').style.display='';
-      document.getElementById('deseoAsistencia').parentElement.style.display='';
-      document.getElementById('btnGuardarDeseo').style.display='none';
-      document.getElementById('campoRegistrador').style.display='none';
-    }
-    document.getElementById('deseoAsistencia').value='';
-    document.getElementById('registradorDeseo').value='';
-    goScreen('s-asistencia');
-  } else {
-    // No existe → registro nuevo
-    REGISTRO_ADMIN_MODE = false;
-    currentCedula = ced;
-    document.getElementById('rCedula').value = ced;
-    ['rNombres','rApellidos','rEdad','rTelefono','rEstadoCivil','rDireccion','rInvitador'].forEach(id=>{
-      document.getElementById(id).value='';
-    });
-    document.getElementById('rDeseo').value='';
-    document.getElementById('regAlert').innerHTML='';
-    document.getElementById('chkAutorizo').checked=false;
-    toggleAutorizacion();
-    goScreen('s-registro');
+  let personas;
+  try {
+    personas = await dbGetPersonasByCelular(cel);
+  } catch (e) {
+    showAlert('cedAlert','No se pudo consultar. Revisa tu conexión e intenta de nuevo.','error');
+    return;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = 'Continuar →';
   }
+
+  currentCelular = cel;
+  if (!personas.length) { iniciarRegistroCelular(cel); return; }
+
+  CEL_COINCIDENCIAS = personas;
+  document.getElementById('celOpciones').innerHTML = personas.map((p, i) => `
+    <button class="btn block" style="margin-bottom:8px;justify-content:flex-start" onclick="elegirPersonaCelular(${i})">
+      <span class="av">${escapeHtml(initials(p.nombre_completo))}</span> ${escapeHtml(p.nombre_completo || '')}
+    </button>`).join('');
+  mostrarPasoCelular(2);
+}
+
+function elegirPersonaCelular(i) {
+  const persona = CEL_COINCIDENCIAS[i];
+  if (persona) mostrarAsistenciaPersona(persona);
+}
+
+function registrarOtraPersonaCelular() {
+  iniciarRegistroCelular(currentCelular);
+}
+
+function prepararFormularioRegistro(cel) {
+  currentCelular = cel;
+  document.getElementById('rCelular').value = cel;
+  ['rNombres','rApellidos','rEdad','rEstadoCivil','rDireccion','rInvitador'].forEach(id=>{
+    document.getElementById(id).value='';
+  });
+  document.getElementById('rDeseo').value='';
+  document.getElementById('regAlert').innerHTML='';
+  document.getElementById('chkAutorizo').checked=false;
+  toggleAutorizacion();
+}
+
+function iniciarRegistroCelular(cel) {
+  REGISTRO_ADMIN_MODE = false;
+  prepararFormularioRegistro(cel);
+  goScreen('s-registro');
+}
+
+// La columna cedula es UNIQUE NOT NULL: se rellena con el celular (y un sufijo -2, -3... si otra persona comparte el celular).
+async function siguienteDocumentoCelular(cel, extra = 0) {
+  let usados = 0;
+  if (isDemo()) {
+    usados = DEMO_DB.personas.filter(p => String(p.cedula) === cel || String(p.cedula).startsWith(cel + '-')).length;
+  } else {
+    const rows = await sbGet('personas', `?select=cedula&cedula=like.${cel}*&limit=100`);
+    usados = Array.isArray(rows) ? rows.length : 0;
+  }
+  const n = usados + extra;
+  return n === 0 ? cel : `${cel}-${n + 1}`;
+}
+
+async function mostrarAsistenciaPersona(persona) {
+  currentPersona = persona;
+  const ya = isDemo()
+    ? DEMO_DB.asistencias.find(a=>a.persona_id===persona.id&&a.fecha===todayStr())
+    : (await sbGet('asistencias',`?persona_id=eq.${persona.id}&fecha=eq.${todayStr()}${distritoQueryParam()}&limit=1`));
+  const yaHoy = Array.isArray(ya) ? ya.length > 0 : !!ya;
+
+  document.getElementById('foundCard').innerHTML=`
+    <div class="person-found">
+      <div class="pf-avatar">${escapeHtml(initials(persona.nombre_completo))}</div>
+      <div>
+        <div class="pf-name">${escapeHtml(persona.nombre_completo || '')}</div>
+      </div>
+    </div>`;
+
+  if (yaHoy) {
+    const asistHoy = Array.isArray(ya) ? ya[0] : ya;
+    const horaParts = (asistHoy?.hora || '').split('|');
+    const deseoActual = (horaParts[1] || '').trim();
+
+    if (deseoActual && deseoActual.length > 0) {
+      document.getElementById('asistAlert').innerHTML=`<div class="alert warning">✅ Ya marcaste asistencia hoy. Tu deseo: <strong>${escapeHtml(deseoActual)}</strong>. ¡Dios te bendiga!</div>`;
+      document.getElementById('btnMarcar').disabled=true;
+      document.getElementById('btnMarcar').style.opacity='0.5';
+      document.getElementById('btnMarcar').style.display='none';
+      document.getElementById('deseoAsistencia').parentElement.style.display='none';
+      document.getElementById('btnGuardarDeseo').style.display='none';
+    } else {
+      document.getElementById('asistAlert').innerHTML=`<div class="alert warning">✅ Ya marcaste asistencia hoy. Si deseas, puedes agregar tu deseo ahora.</div>`;
+      document.getElementById('btnMarcar').disabled=true;
+      document.getElementById('btnMarcar').style.opacity='0.5';
+      document.getElementById('btnMarcar').style.display='none';
+      document.getElementById('deseoAsistencia').parentElement.style.display='';
+      document.getElementById('btnGuardarDeseo').style.display='';
+      document.getElementById('btnGuardarDeseo').dataset.asistId = asistHoy?.id || '';
+      document.getElementById('btnGuardarDeseo').dataset.horaOriginal = horaParts[0] || '';
+      document.getElementById('campoRegistrador').style.display = 'none';
+    }
+  } else {
+    document.getElementById('asistAlert').innerHTML='';
+    document.getElementById('btnMarcar').disabled=false;
+    document.getElementById('btnMarcar').style.opacity='1';
+    document.getElementById('btnMarcar').style.display='';
+    document.getElementById('deseoAsistencia').parentElement.style.display='';
+    document.getElementById('btnGuardarDeseo').style.display='none';
+    document.getElementById('campoRegistrador').style.display='none';
+  }
+  document.getElementById('deseoAsistencia').value='';
+  document.getElementById('registradorDeseo').value='';
+  goScreen('s-asistencia');
 }
 
 async function registrarPersona() {
@@ -2286,17 +2346,17 @@ async function registrarPersona() {
   const apellidos = document.getElementById('rApellidos').value.trim();
   const edadRaw   = document.getElementById('rEdad').value.trim();
   const edad      = edadRaw ? parseInt(edadRaw, 10) : null;
-  const telefono  = document.getElementById('rTelefono').value.replace(/\D/g,'').slice(0,10);
+  const telefono  = currentCelular;
   const estadoCivil = document.getElementById('rEstadoCivil') ? document.getElementById('rEstadoCivil').value : '';
   const iglesia   = '';
   const direccion = document.getElementById('rDireccion').value.trim();
   const invitador = document.getElementById('rInvitador').value.trim();
   const deseoReg  = document.getElementById('rDeseo').value;
 
-  if (!nombres||!apellidos||!telefono||!direccion) {
+  if (!nombres||!apellidos||!direccion) {
     showAlert('regAlert','Por favor completa todos los campos obligatorios (*)','error'); return;
   }
-  if (telefono.length !== 10) { showAlert('regAlert','El teléfono debe tener exactamente 10 números. Ej: 3001234567','error'); return; }
+  if (!/^\d{10}$/.test(telefono)) { showAlert('regAlert','Falta tu número de celular. Vuelve atrás e ingrésalo de nuevo.','error'); return; }
   if (edadRaw && (edad < 5 || edad > 110)) { showAlert('regAlert','Ingresa una edad válida o deja el campo vacío.','error'); return; }
   if (!document.getElementById('chkAutorizo').checked) {
     showAlert('regAlert','Debes autorizar el tratamiento de datos personales para continuar.','error'); return;
@@ -2305,8 +2365,12 @@ async function registrarPersona() {
   document.getElementById('btnRegistrar').disabled=true;
   document.getElementById('btnRegistrar').innerHTML=`<span class="spin"></span> Guardando...`;
 
-  const data = { cedula:currentCedula, nombres, apellidos, edad, telefono, estado_civil: estadoCivil || null, iglesia, direccion, invitador };
-  const result = await dbInsertPersona(data);
+  let result;
+  for (let intento = 0; intento < 4; intento++) {
+    const cedula = await siguienteDocumentoCelular(telefono, intento);
+    result = await dbInsertPersona({ cedula, nombres, apellidos, edad, telefono, estado_civil: estadoCivil || null, iglesia, direccion, invitador });
+    if (!(result && result.error && /unique|duplicate/i.test(result.error))) break;
+  }
 
   document.getElementById('btnRegistrar').disabled=false;
   document.getElementById('btnRegistrar').innerHTML='Registrarme';
@@ -2326,8 +2390,8 @@ async function registrarPersona() {
     }
 
     mostrarExito(persona.nombre_completo||`${nombres} ${apellidos}`, true);
-  } else if (result && result.error && result.error.includes('unique')) {
-    showAlert('regAlert','Esta cédula ya está registrada. Vuelve atrás y toca "Continuar" de nuevo.','error');
+  } else if (result && result.error && /unique|duplicate/i.test(result.error)) {
+    showAlert('regAlert','Esta persona ya está registrada. Vuelve atrás y toca "Continuar" de nuevo.','error');
   } else {
     showAlert('regAlert','Error al guardar. Intenta de nuevo.','error');
   }
@@ -2643,8 +2707,8 @@ function mostrarExito(nombre, esRegistro) {
     : '¡Asistencia registrada correctamente!';
   document.getElementById('exitoFecha').textContent = '📅 ' + fmtFecha(todayStr());
   document.getElementById('exitoIcon').textContent = esRegistro ? '🎉' : '✓';
-  document.getElementById('cedInput').value='';
-  currentPersona=null; currentCedula='';
+  document.getElementById('celInput').value='';
+  currentPersona=null; currentCelular='';
   goScreen('s-exito');
 }
 
