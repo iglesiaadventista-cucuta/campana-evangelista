@@ -483,19 +483,43 @@ tbody tr:hover td{background:#FFFAED}
       </div>
       <div class="card">
         <div id="cedAlert"></div>
-        <div class="field">
-          <label style="text-align:center">Número de celular</label>
-          <input type="tel" id="celInput" class="cedula-input" placeholder="3 0 0 1 2 3 4 5 6 7"
-            inputmode="numeric" maxlength="10" autocomplete="tel"
-            oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)"
-            onkeydown="if(event.key==='Enter')verificarCelular()" autofocus />
+        <div id="celPaso1">
+          <div class="field">
+            <label style="text-align:center">Número de celular</label>
+            <input type="tel" id="celInput" class="cedula-input" placeholder="3 0 0 1 2 3 4 5 6 7"
+              inputmode="numeric" maxlength="10" autocomplete="tel"
+              oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)"
+              onkeydown="if(event.key==='Enter')verificarCelular()" autofocus />
+          </div>
+          <button class="btn primary block xl" id="btnVerificar" onclick="verificarCelular()" style="letter-spacing:.04em">
+            Continuar →
+          </button>
+          <p style="font-size:12px;color:#5A4000;text-align:center;margin-top:14px">
+            Si es tu primera vez, podrás completar tu registro a continuación
+          </p>
         </div>
-        <button class="btn primary block xl" id="btnVerificar" onclick="verificarCelular()" style="letter-spacing:.04em">
-          Continuar →
-        </button>
-        <p style="font-size:12px;color:#5A4000;text-align:center;margin-top:14px">
-          Si es tu primera vez, podrás completar tu registro a continuación
-        </p>
+        <div id="celPasoNombre" class="hidden">
+          <p style="font-size:14px;color:#3A2800;text-align:center;margin-bottom:6px"><strong>No encontramos ese celular.</strong></p>
+          <p style="font-size:13px;color:#5A4000;text-align:center;margin-bottom:14px">Si ya te habías registrado con otro número, escribe tu nombre y apellido para buscarte.</p>
+          <div class="field">
+            <label>Nombre</label>
+            <input type="text" id="buscarNombre" placeholder="Ej: María" autocomplete="given-name" />
+          </div>
+          <div class="field">
+            <label>Apellido</label>
+            <input type="text" id="buscarApellido" placeholder="Ej: González" autocomplete="family-name"
+              onkeydown="if(event.key==='Enter')buscarPorNombre()" />
+          </div>
+          <button class="btn primary block xl" id="btnBuscarNombre" onclick="buscarPorNombre()">Buscarme</button>
+          <button class="btn block" style="margin-top:10px" onclick="iniciarRegistroCelular()">Es mi primera vez · Registrarme</button>
+          <button class="btn block" style="margin-top:8px" onclick="mostrarPasoCelular(1)">← Cambiar número</button>
+        </div>
+        <div id="celPasoElegir" class="hidden">
+          <p id="celElegirTitulo" style="font-size:14px;color:#3A2800;text-align:center;margin-bottom:14px"></p>
+          <div id="celOpciones"></div>
+          <button class="btn block" style="margin-top:10px" onclick="iniciarRegistroCelular()">No soy ninguno · Registrarme</button>
+          <button class="btn block" style="margin-top:8px" onclick="volverDeOpciones()">← Volver</button>
+        </div>
         <div style="text-align:center;margin-top:20px">
           <button onclick="abrirModoLlamado()" style="background:none;border:none;color:rgba(154,111,0,0.3);font-size:11px;cursor:pointer;padding:8px;letter-spacing:0.05em">✦ ✦ ✦</button>
         </div>
@@ -1938,12 +1962,12 @@ async function abrirRegistroDistrito() {
     return;
   }
 
-  let existe;
-  try { existe = await dbGetPersonaByCelular(celular); }
+  let existentes;
+  try { existentes = await dbGetPersonasByCelular(celular); }
   catch (e) { alert('No se pudo consultar. Revisa tu conexión e intenta de nuevo.'); return; }
-  if (existe) {
-    alert('Esta persona ya está registrada en este distrito. Puedes marcarle asistencia desde el flujo normal.');
-    return;
+  if (existentes.length) {
+    const lista = existentes.map(p => '• ' + (p.nombre_completo || '')).join('\n');
+    if (!confirm('Ya hay personas registradas con este celular:\n' + lista + '\n\n¿Registrar a OTRA persona con el mismo celular?')) return;
   }
 
   REGISTRO_ADMIN_MODE = true;
@@ -2128,6 +2152,7 @@ function fmtHora(ts) {
 function goScreen(id) {
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+  if (id === 's-cedula') mostrarPasoCelular(1);
   // Update campaign name on public screens
   ['pubCampanaName','pubCampanaName2','pubCampanaName3'].forEach(el=>{
     const e=document.getElementById(el); if(e) e.textContent=CFG.campanaName;
@@ -2189,18 +2214,64 @@ function toggleRegistrador() {
 //  FLUJO PÚBLICO — CÉDULA → REGISTRO / ASISTENCIA
 // ╚══════════════════════════════════════════════════════════╝
 let currentCelular = '';
+let CEL_OPCIONES = [];
+let CEL_PASO_PREVIO = 1;
+let CEL_MODO_NOMBRE = false;
 
-async function dbGetPersonaByCelular(cel) {
-  if (isDemo()) return DEMO_DB.personas.find(p => p.telefono === cel || String(p.cedula) === cel) || null;
+function mostrarPasoCelular(paso) {
+  document.getElementById('celPaso1').classList.toggle('hidden', paso !== 1);
+  document.getElementById('celPasoNombre').classList.toggle('hidden', paso !== 2);
+  document.getElementById('celPasoElegir').classList.toggle('hidden', paso !== 3);
+  document.getElementById('cedAlert').innerHTML = '';
+  if (paso === 1) document.getElementById('celInput').focus();
+  if (paso === 2) document.getElementById('buscarNombre').focus();
+}
+
+function normalizarTexto(s) {
+  return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z ]/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function nombreCorto(p) {
+  const nom = String(p.nombres || p.nombre_completo || '').trim().split(/\s+/)[0] || '';
+  const ape = String(p.apellidos || '').trim().charAt(0).toUpperCase();
+  return ape ? `${nom} ${ape}.` : nom;
+}
+
+async function dbGetPersonasByCelular(cel) {
+  if (isDemo()) return DEMO_DB.personas.filter(p => p.telefono === cel || String(p.cedula) === cel);
   const filtro = `or=(telefono.eq.${cel},cedula.eq.${cel})`;
   const ctx = await scContextoCampaniaActual();
   let rows = [];
-  if (ctx.asociacion_id) rows = await sbGet('personas', `?${filtro}&asociacion_id=eq.${encodeURIComponent(ctx.asociacion_id)}&limit=1`);
-  else if (ctx.distrito_id) rows = await sbGet('personas', `?${filtro}&distrito_id=eq.${encodeURIComponent(ctx.distrito_id)}&limit=1`);
-  if (Array.isArray(rows) && rows.length) return rows[0];
-  rows = await sbGet('personas', `?${filtro}&limit=1`);
+  if (ctx.asociacion_id) rows = await sbGet('personas', `?${filtro}&asociacion_id=eq.${encodeURIComponent(ctx.asociacion_id)}&limit=10`);
+  else if (ctx.distrito_id) rows = await sbGet('personas', `?${filtro}&distrito_id=eq.${encodeURIComponent(ctx.distrito_id)}&limit=10`);
+  if (Array.isArray(rows) && rows.length) return rows;
+  rows = await sbGet('personas', `?${filtro}&limit=10`);
   if (!Array.isArray(rows)) throw new Error('consulta fallida');
-  return rows.length ? rows[0] : null;
+  return rows;
+}
+
+// Busca por nombre y apellido ignorando tildes y mayúsculas. Cada vocal y la ñ se vuelven comodín para que "jose" encuentre "José".
+async function dbBuscarPersonasPorNombre(nombre, apellido) {
+  const nTok = normalizarTexto(nombre).split(' ').filter(Boolean);
+  const aTok = normalizarTexto(apellido).split(' ').filter(Boolean);
+  const todos = nTok.concat(aTok);
+  const comodin = t => t.replace(/[aeiounü]/g, '_');
+  let rows;
+  if (isDemo()) {
+    rows = DEMO_DB.personas;
+  } else {
+    const filtro = `nombre_completo=ilike.*${encodeURIComponent(comodin(nTok[0]))}*&nombre_completo=ilike.*${encodeURIComponent(comodin(aTok[0]))}*`;
+    const ctx = await scContextoCampaniaActual();
+    rows = [];
+    if (ctx.asociacion_id) rows = await sbGet('personas', `?${filtro}&asociacion_id=eq.${encodeURIComponent(ctx.asociacion_id)}&limit=30`);
+    else if (ctx.distrito_id) rows = await sbGet('personas', `?${filtro}&distrito_id=eq.${encodeURIComponent(ctx.distrito_id)}&limit=30`);
+    if (!Array.isArray(rows) || !rows.length) rows = await sbGet('personas', `?${filtro}&limit=30`);
+    if (!Array.isArray(rows)) throw new Error('consulta fallida');
+  }
+  return rows.filter(p => {
+    const nc = normalizarTexto(p.nombre_completo);
+    return todos.every(t => nc.includes(t));
+  }).slice(0, 8);
 }
 
 async function verificarCelular() {
@@ -2211,9 +2282,9 @@ async function verificarCelular() {
   btn.disabled = true;
   btn.innerHTML = `<span class="spin"></span> Verificando...`;
 
-  let persona;
+  let personas;
   try {
-    persona = await dbGetPersonaByCelular(cel);
+    personas = await dbGetPersonasByCelular(cel);
   } catch (e) {
     showAlert('cedAlert','No se pudo consultar. Revisa tu conexión e intenta de nuevo.','error');
     return;
@@ -2222,8 +2293,64 @@ async function verificarCelular() {
     btn.innerHTML = 'Continuar →';
   }
 
-  if (persona) await mostrarAsistenciaPersona(persona);
-  else iniciarRegistroCelular(cel);
+  currentCelular = cel;
+  if (personas.length === 1) { await mostrarAsistenciaPersona(personas[0]); return; }
+  if (personas.length > 1) {
+    mostrarOpcionesCelular(personas, 'Este celular tiene varias personas registradas. ¿Quién eres?', false, 1);
+    return;
+  }
+  document.getElementById('buscarNombre').value = '';
+  document.getElementById('buscarApellido').value = '';
+  mostrarPasoCelular(2);
+}
+
+async function buscarPorNombre() {
+  const nombre = document.getElementById('buscarNombre').value.trim();
+  const apellido = document.getElementById('buscarApellido').value.trim();
+  if (normalizarTexto(nombre).length < 2 || normalizarTexto(apellido).length < 2) {
+    showAlert('cedAlert','Escribe tu nombre y tu apellido para buscarte.','error'); return;
+  }
+  const btn = document.getElementById('btnBuscarNombre');
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spin"></span> Buscando...`;
+  let personas;
+  try {
+    personas = await dbBuscarPersonasPorNombre(nombre, apellido);
+  } catch (e) {
+    showAlert('cedAlert','No se pudo consultar. Revisa tu conexión e intenta de nuevo.','error');
+    return;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = 'Buscarme';
+  }
+  if (!personas.length) {
+    showAlert('cedAlert','No te encontramos. Revisa cómo escribiste tu nombre o toca "Es mi primera vez".','warning'); return;
+  }
+  mostrarOpcionesCelular(personas, personas.length === 1 ? '¿Eres tú?' : '¿Cuál de estas personas eres?', true, 2);
+}
+
+function mostrarOpcionesCelular(personas, titulo, porNombre, pasoPrevio) {
+  CEL_OPCIONES = personas;
+  CEL_MODO_NOMBRE = porNombre;
+  CEL_PASO_PREVIO = pasoPrevio;
+  document.getElementById('celElegirTitulo').textContent = titulo;
+  document.getElementById('celOpciones').innerHTML = personas.map((p, i) => {
+    const tel = String(p.telefono || '').replace(/\D/g, '');
+    const pista = (porNombre && tel.length >= 4) ? ` · cel ···${tel.slice(-4)}` : '';
+    return `<button class="btn block" style="margin-bottom:8px;justify-content:flex-start" onclick="elegirPersonaCelular(${i})">
+      <span class="av">${escapeHtml(initials(p.nombre_completo))}</span> ${escapeHtml(nombreCorto(p))}${escapeHtml(pista)}
+    </button>`;
+  }).join('');
+  mostrarPasoCelular(3);
+}
+
+function elegirPersonaCelular(i) {
+  const persona = CEL_OPCIONES[i];
+  if (persona) mostrarAsistenciaPersona(persona, CEL_MODO_NOMBRE);
+}
+
+function volverDeOpciones() {
+  mostrarPasoCelular(CEL_PASO_PREVIO);
 }
 
 function prepararFormularioRegistro(cel) {
@@ -2240,11 +2367,11 @@ function prepararFormularioRegistro(cel) {
 
 function iniciarRegistroCelular(cel) {
   REGISTRO_ADMIN_MODE = false;
-  prepararFormularioRegistro(cel);
+  prepararFormularioRegistro(cel || currentCelular);
   goScreen('s-registro');
 }
 
-async function mostrarAsistenciaPersona(persona) {
+async function mostrarAsistenciaPersona(persona, reducida = false) {
   currentPersona = persona;
   const ya = isDemo()
     ? DEMO_DB.asistencias.find(a=>a.persona_id===persona.id&&a.fecha===todayStr())
@@ -2256,8 +2383,8 @@ async function mostrarAsistenciaPersona(persona) {
       <div class="pf-avatar">${escapeHtml(initials(persona.nombre_completo))}</div>
       <div>
         <div class="pf-name">${escapeHtml(persona.nombre_completo || '')}</div>
-        <div class="pf-meta">Cel: ${escapeHtml(persona.telefono || '')}</div>
-        <div class="pf-meta">${escapeHtml(persona.direccion || '')}</div>
+        ${reducida ? '' : `<div class="pf-meta">Cel: ${escapeHtml(persona.telefono || '')}</div>
+        <div class="pf-meta">${escapeHtml(persona.direccion || '')}</div>`}
       </div>
     </div>`;
 
@@ -2322,8 +2449,12 @@ async function registrarPersona() {
   document.getElementById('btnRegistrar').disabled=true;
   document.getElementById('btnRegistrar').innerHTML=`<span class="spin"></span> Guardando...`;
 
-  const data = { cedula:telefono, nombres, apellidos, edad, telefono, estado_civil: estadoCivil || null, iglesia, direccion, invitador };
-  const result = await dbInsertPersona(data);
+  let result;
+  for (let n = 1; n <= 8; n++) {
+    const cedula = n === 1 ? telefono : `${telefono}-${n}`;
+    result = await dbInsertPersona({ cedula, nombres, apellidos, edad, telefono, estado_civil: estadoCivil || null, iglesia, direccion, invitador });
+    if (!(result && result.error && /unique|duplicate/i.test(result.error))) break;
+  }
 
   document.getElementById('btnRegistrar').disabled=false;
   document.getElementById('btnRegistrar').innerHTML='Registrarme';
@@ -2344,7 +2475,7 @@ async function registrarPersona() {
 
     mostrarExito(persona.nombre_completo||`${nombres} ${apellidos}`, true);
   } else if (result && result.error && /unique|duplicate/i.test(result.error)) {
-    showAlert('regAlert','Este celular ya está registrado. Vuelve atrás y toca "Continuar" de nuevo.','error');
+    showAlert('regAlert','No se pudo guardar porque ya existe un registro igual. Vuelve atrás y toca "Continuar" de nuevo.','error');
   } else {
     showAlert('regAlert','Error al guardar. Intenta de nuevo.','error');
   }
